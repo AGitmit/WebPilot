@@ -2,7 +2,7 @@
 line-length = 100
 
 [tool.poetry]
-name = "🌐👻 WebGhost"
+name = "🕸️👻 WebWeaver"
 version = "0.1.0"
 description = "Automated-Browsers - Reinvented"
 authors = ["Amit Nakash"]
