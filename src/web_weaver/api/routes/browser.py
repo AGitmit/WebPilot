@@ -2,11 +2,11 @@ import uuid
 import asyncio
 
 from fastapi import APIRouter, status, HTTPException
-from il_web_renderer.config import config as conf
-from il_web_renderer.clients.renderer import RendererClient, HeadlessBrowserClient
-from il_web_renderer.schemas.requests import FetchRequest, PageActionRequest
-from il_web_renderer.schemas.responses import PageContentResponse
-from il_web_renderer.logger import logger
+from web_weaver.config import config as conf
+from web_weaver.clients.controller import BrowserController
+from web_weaver.schemas.requests import FetchRequest, PageActionRequest
+from web_weaver.schemas.responses import PageContentResponse
+from web_weaver.logger import logger
 
 
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
@@ -17,7 +17,7 @@ async def fetch_url(args: FetchRequest):
     with logger.contextualize(transaction_id=args.transaction_id):
         try:
             return await asyncio.wait_for(
-                HeadlessBrowserClient.fetch_page_contents(**args.dict()),
+                BrowserController.fetch_page_contents(**args.dict()),
                 timeout=conf.default_timeout,
             )
 
@@ -35,7 +35,7 @@ async def fetch_url(args: FetchRequest):
 async def start_page_session(session_id: uuid.UUID):
     try:
         return await asyncio.wait_for(
-            HeadlessBrowserClient.start_page_session(session_id), timeout=conf.default_timeout
+            BrowserController.start_page_session(session_id), timeout=conf.default_timeout
         )
 
     except asyncio.TimeoutError as e:
@@ -52,7 +52,7 @@ async def start_page_session(session_id: uuid.UUID):
 async def close_page_session(session_id: uuid.UUID):
     try:
         return await asyncio.wait_for(
-            HeadlessBrowserClient.remove_cached_page(session_id), timeout=conf.default_timeout
+            BrowserController.remove_cached_page(session_id), timeout=conf.default_timeout
         )
 
     except KeyError as e:
@@ -76,8 +76,8 @@ async def close_page_session(session_id: uuid.UUID):
 )
 async def perform_action_on_page(session_id: uuid.UUID, args: PageActionRequest):
     async def action_on_page(session_id: uuid.UUID, args: PageActionRequest):
-        page = await HeadlessBrowserClient.retrieve_cached_page(session_id)
-        return await HeadlessBrowserClient.page_action(page, **args.dict())
+        page = await BrowserController.retrieve_cached_page(session_id)
+        return await BrowserController.page_action(page, **args.dict())
 
     try:
         return await asyncio.wait_for(

@@ -1,21 +1,21 @@
 from fastapi import FastAPI
 
-# relative imports
-from il_web_renderer.api.routes.render import router as RenderRouter
-from il_web_renderer.api.routes import router as IndexRouter
-from il_web_renderer.api.routes.browser import router as BrowserRouter
-from il_web_renderer.config import config as conf
+from web_weaver.api.routes import router as IndexRouter
+from web_weaver.api.routes.browser import router as BrowserRouter
+from web_weaver.config import config as conf
 
 
 app = FastAPI(
-    title="il-Web-Renderer",
+    title="🕸️👻 WebWeaver API",
     version=conf.app_version,
-    description="A Headless-browser HTTP API application powered by Pyppeteer",
+    description="Automated web - Reimagined",
+    openapi_url=f"{conf.v1_url_prefix}/openapi.json",
+    docs_url=f"{conf.v1_url_prefix}/docs",
+    redoc_url=f"{conf.v1_url_prefix}/redoc",
 )
 
 for router in [
     IndexRouter,
-    RenderRouter,
     BrowserRouter,
 ]:
     app.include_router(router)

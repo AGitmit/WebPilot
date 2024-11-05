@@ -1,7 +1,6 @@
 from fastapi import APIRouter, status
 
-# relative imports
-from il_web_renderer.config import config as conf
+from web_weaver.config import config as conf
 
 
 router = APIRouter(prefix="")
@@ -11,7 +10,7 @@ router = APIRouter(prefix="")
 async def index():
     """Returns the service's basic information."""
     return dict(
-        service="Web-Renderer",
+        service="🕸️👻 WebWeaver",
         environment=conf.environment,
         version=conf.app_version,
     )
