@@ -3,6 +3,7 @@ import pyppeteer
 import asyncio
 
 from web_weaver.config import config as conf
+from web_weaver.logger import logger
 
 __all__ = ["Browser"]
 
@@ -16,6 +17,8 @@ class Browser:
 
     def __init__(self, id_: int) -> None:
         "Create Browser instance"
+        self._check_chromium()
+
         self.id_ = id_
         self.page_count = 0
         self.cache = cachetools.TTLCache(maxsize=conf.page_cache_cap, ttl=conf.page_cache_ttl)
@@ -33,6 +36,12 @@ class Browser:
         )  # TODO: research more deeply on the browser options
         self._instantiate_browser()
 
+    def _check_chromium(self):
+        if not pyppeteer.chromium_downloader.check_chromium():
+            logger.info("Downloading Chromium...")
+            pyppeteer.chromium_downloader.download_chromium()
+            logger.info("Chromium downloaded successfully")
+        
     def _instantiate_browser(self) -> pyppeteer.browser.Browser:
         "Create Pyppeteer browser instance"
 
