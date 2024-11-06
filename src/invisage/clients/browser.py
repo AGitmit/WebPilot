@@ -11,8 +11,7 @@ __all__ = ["Browser"]
 class Browser:
     id_: int
     browser: pyppeteer.browser.Browser
-    page_count: int
-    cache: cachetools.TTLCache
+    pages: cachetools.TTLCache
     config: dict
 
     def __init__(self, id_: int) -> None:
@@ -20,8 +19,7 @@ class Browser:
         self._check_chromium()
 
         self.id_ = id_
-        self.page_count = 0
-        self.cache = cachetools.TTLCache(maxsize=conf.page_cache_cap, ttl=conf.page_cache_ttl)
+        self.pages = cachetools.TTLCache(maxsize=conf.browser_pages_cap, ttl=conf.pages_cache_ttl)
         self.config = dict(
             headless=True,
             autoClose=False,
@@ -49,3 +47,6 @@ class Browser:
             self.browser = await pyppeteer.launch(**self.config)
 
         asyncio.get_event_loop().run_until_complete(create())
+
+    def page_count(self) -> int:
+        return len(self.pages)
