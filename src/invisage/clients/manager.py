@@ -1,9 +1,9 @@
 import pyppeteer
 
 from typing import Optional
-from web_weaver.config import config as conf
-from web_weaver.clients.browser import Browser
-from web_weaver.exc import BrowserPoolCapacityReachedError
+from invisage.config import config as conf
+from invisage.clients.browser import Browser
+from invisage.exc import BrowserPoolCapacityReachedError
 
 __all__ = ["BrowserManager"]
 

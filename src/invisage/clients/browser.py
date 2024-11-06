@@ -2,8 +2,8 @@ import cachetools
 import pyppeteer
 import asyncio
 
-from web_weaver.config import config as conf
-from web_weaver.logger import logger
+from invisage.config import config as conf
+from invisage.logger import logger
 
 __all__ = ["Browser"]
 

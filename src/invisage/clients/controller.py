@@ -4,14 +4,15 @@ import asyncio
 import cachetools
 import uuid
 import pydantic as pyd
+import json
 
 from contextlib import asynccontextmanager
 
 import pyppeteer.page
-from web_weaver.config import config as conf
-from web_weaver.utils.metrics import log_execution_metrics
-from web_weaver.logger import logger
-from web_weaver.schemas.constants.page_action_type import PageActionType
+from invisage.config import config as conf
+from invisage.utils.metrics import log_execution_metrics
+from invisage.logger import logger
+from invisage.schemas.constants.page_action_type import PageActionType
 
 
 CACHE = cachetools.TTLCache(maxsize=conf.max_cached, ttl=conf.cache_ttl)
@@ -130,10 +131,47 @@ class BrowserController:
             elapsed += interval
         raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
 
+    async def save_snapshot(page):
+        cookies = await page.cookies()
+        local_storage = await page.evaluate("JSON.stringify(Object.assign({}, window.localStorage))")
+        session_storage = await page.evaluate("JSON.stringify(Object.assign({}, window.sessionStorage))")
+        url = page.url
+
+        snapshot = {
+            "cookies": cookies,
+            "local_storage": local_storage,
+            "session_storage": session_storage,
+            "url": url
+        }
+        return snapshot
+
+    @classmethod
+    async def restore_snapshot(cls, snapshot):
+        browser = await cls.get_browser()
+        page = await browser.newPage()
+        
+        # Set cookies
+        await page.setCookie(*snapshot['cookies'])
+        
+        # Navigate to a minimal valid page to access storage APIs
+        await page.goto("http://www.google.com")
+        
+        # Restore local storage and session storage
+        await page.evaluate(f"""
+            Object.assign(window.localStorage, JSON.parse({json.dumps(snapshot['local_storage'])}));
+            Object.assign(window.sessionStorage, JSON.parse({json.dumps(snapshot['session_storage'])}));
+        """)
+        
+        # Navigate to the saved URL
+        await page.goto(snapshot['url'])
+        return page
+
+
     @classmethod
     @pyd.validate_arguments
     @log_execution_metrics
     async def page_action(cls, page: pyppeteer.page.Page, action: PageActionType, **kwargs) -> dict:
+        global snapshot
         match action:
             case PageActionType.CLICK:
                 selector = kwargs.pop("selector")
@@ -161,5 +199,9 @@ class BrowserController:
             case PageActionType.GO_FORWARD:
                 options = kwargs.pop("options", None)
                 await page.goForward(options)
+            case PageActionType.SAVE_SNAPSHOT:
+                snapshot = await cls.save_snapshot(page)
+            case PageActionType.RESTORE_SNAPSHOT:
+                page = await cls.restore_snapshot(snapshot)
 
         return await cls.extract_page_contents(page)

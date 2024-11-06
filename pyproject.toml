@@ -2,9 +2,9 @@
 line-length = 100
 
 [tool.poetry]
-name = "🕸️👻 WebWeaver"
+name = "👻 Invisage"
 version = "0.1.0"
-description = "Automated-Browsers - Reinvented"
+description = "Envision the Web, Invisibly"
 authors = ["Amit Nakash"]
 readme = "README.md"
 packages = [

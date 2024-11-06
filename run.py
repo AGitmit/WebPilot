@@ -1,6 +1,6 @@
 import uvicorn
 
-from web_weaver.config import config as conf
+from invisage.config import config as conf
 
 
 if __name__ == "__main__":

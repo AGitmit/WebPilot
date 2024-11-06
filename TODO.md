@@ -1,4 +1,4 @@
-### 🕸️👻 TODO
+### 👻 TODO
 #### Upgrades
 - **Page Actions**: expand page actions exposed via REST API.
 - **Page Actions**: Fine-tuning existing methods.
