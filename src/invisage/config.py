@@ -25,8 +25,8 @@ class BaseConfig(BaseSettings):
     chromium_path: str = Field(default_factory=executablePath)
     browser_headless: bool = Field(default=True)
     browser_auto_close: bool = Field(default=False)
-    page_cache_ttl: float = Field(default=18_000)  # 5 hours
-    page_cache_cap: int = Field(default=100)  # max page cache in memory
+    pages_cache_ttl: float = Field(default=3600)  # 1 hour
+    browser_pages_cap: int = Field(default=100)  # max pages cached in memory
 
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
