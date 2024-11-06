@@ -1,94 +1,57 @@
 import pyppeteer
-import atexit
 import asyncio
-import cachetools
 import uuid
 import pydantic as pyd
 import json
 
 from contextlib import asynccontextmanager
 
-import pyppeteer.page
-from invisage.config import config as conf
 from invisage.utils.metrics import log_execution_metrics
 from invisage.logger import logger
 from invisage.schemas.constants.page_action_type import PageActionType
-
-
-CACHE = cachetools.TTLCache(maxsize=conf.max_cached, ttl=conf.cache_ttl)
+from invisage.clients.browser import Browser
 
 
 class BrowserController:
-    _browser = None
-
-    @classmethod
-    async def get_browser(cls):
-        "Get the browser's instance; created a new browser if none in already running"
-        if cls._browser is None:
-            config = dict(
-                headless=True,
-                autoClose=False,
-                args=[
-                    "--disable-web-security",
-                    "--host-resolver-rules=MAP localhost 127.0.0.1",
-                    "--disable-gpu",
-                    "--no-sandbox",
-                    "--disable-dev-shm-usage",
-                ],
-                executablePath=conf.chromium_path,
-            )
-
-            cls._browser = await pyppeteer.launch(**config)
-
-            atexit.register(cls.close_browser)
-        return cls._browser
-
     @classmethod
     @asynccontextmanager
-    async def get_new_page(cls):
-        browser = await cls.get_browser()
-        new_page = await browser.newPage()
+    async def get_new_page(cls, browser: Browser):
+        new_page = await browser.browser.newPage()
         try:
             yield new_page
         finally:
             await new_page.close()
 
     @classmethod
-    def close_browser(cls) -> None:
-        if cls._browser is not None:
-            loop = asyncio.get_event_loop()
-            loop.call_soon_threadsafe(cls._browser.close)
-            cls._browser = None
+    async def start_remote_page_session(cls, browser: Browser) -> uuid.UUID:
+        "Created new page and store it in cache by it's session-ID"
+        session_id = uuid.uuid4().__str__()
+        new_page = await browser.browser.newPage()
+        browser.pages[session_id] = new_page
+        return session_id
 
     @classmethod
-    async def start_page_session(cls, session_id: uuid.UUID) -> None:
-        "Created a new pages and storing it in cache coupled with it's session ID"
-        if CACHE.get(session_id):
-            raise Exception("Page session already exists for this session_id.")
-        browser = await cls.get_browser()
-        new_page = await browser.newPage()
-        CACHE[session_id] = new_page
-
-    @classmethod
-    async def retrieve_cached_page(cls, session_id: uuid.UUID) -> pyppeteer.page.Page:
-        "Retrieves a page from cache memory"
-        page: pyppeteer.page.Page = CACHE.get(session_id)
+    async def retrieve_page_session(
+        cls, browser: Browser, session_id: uuid.UUID
+    ) -> pyppeteer.page.Page:
+        "Retrieves a page-session from cache memory"
+        page: pyppeteer.page.Page = browser.pages.get(session_id)
         if not page:
             raise KeyError(
-                f"Page not found [page: '{session_id}'] - session has already been closed"
+                f"Page not found [page: '{session_id}'] - session has already been closed!"
             )
         return page
 
     @classmethod
-    async def remove_cached_page(cls, session_id: uuid.UUID) -> None:
-        "Removes a cached page from memory - ending the session"
-        page = await cls.retrieve_cached_page(session_id)
+    async def close_remove_page_session(cls, browser: Browser, session_id: uuid.UUID) -> None:
+        "Removes a cached page-session from memory - ending the session"
+        page = await cls.retrieve_page_session(session_id)
         try:
             await page.close()
         except Exception as e:
             raise
         finally:
-            del CACHE[session_id]
+            del browser.pages[session_id]
 
     @classmethod
     @pyd.validate_arguments
@@ -131,41 +94,46 @@ class BrowserController:
             elapsed += interval
         raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
 
-    async def save_snapshot(page):
+    async def save_session_snapshot(page) -> dict:
         cookies = await page.cookies()
-        local_storage = await page.evaluate("JSON.stringify(Object.assign({}, window.localStorage))")
-        session_storage = await page.evaluate("JSON.stringify(Object.assign({}, window.sessionStorage))")
+        local_storage = await page.evaluate(
+            "JSON.stringify(Object.assign({}, window.localStorage))"
+        )
+        session_storage = await page.evaluate(
+            "JSON.stringify(Object.assign({}, window.sessionStorage))"
+        )
         url = page.url
 
         snapshot = {
             "cookies": cookies,
             "local_storage": local_storage,
             "session_storage": session_storage,
-            "url": url
+            "url": url,
         }
         return snapshot
 
     @classmethod
-    async def restore_snapshot(cls, snapshot):
+    async def restore_session_snapshot(cls, snapshot: dict) -> pyppeteer.page.Page:
         browser = await cls.get_browser()
         page = await browser.newPage()
-        
+
         # Set cookies
-        await page.setCookie(*snapshot['cookies'])
-        
+        await page.setCookie(*snapshot["cookies"])
+
         # Navigate to a minimal valid page to access storage APIs
         await page.goto("http://www.google.com")
-        
+
         # Restore local storage and session storage
-        await page.evaluate(f"""
+        await page.evaluate(
+            f"""
             Object.assign(window.localStorage, JSON.parse({json.dumps(snapshot['local_storage'])}));
             Object.assign(window.sessionStorage, JSON.parse({json.dumps(snapshot['session_storage'])}));
-        """)
-        
-        # Navigate to the saved URL
-        await page.goto(snapshot['url'])
-        return page
+        """
+        )
 
+        # Navigate to the saved URL
+        await page.goto(snapshot["url"])
+        return page
 
     @classmethod
     @pyd.validate_arguments
@@ -200,8 +168,8 @@ class BrowserController:
                 options = kwargs.pop("options", None)
                 await page.goForward(options)
             case PageActionType.SAVE_SNAPSHOT:
-                snapshot = await cls.save_snapshot(page)
+                snapshot = await cls.save_session_snapshot(page)
             case PageActionType.RESTORE_SNAPSHOT:
-                page = await cls.restore_snapshot(snapshot)
+                page = await cls.restore_session_snapshot(snapshot)
 
         return await cls.extract_page_contents(page)

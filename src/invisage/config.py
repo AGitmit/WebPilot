@@ -20,7 +20,7 @@ class BaseConfig(BaseSettings):
     # logging config
     export_logs: bool = False
     log_file_location: str = root_folder
-    
+
     # browser config
     chromium_path: str = Field(default_factory=executablePath)
     browser_headless: bool = Field(default=True)
@@ -31,7 +31,6 @@ class BaseConfig(BaseSettings):
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
 
-    
     class Config:
         case_sensitive = False
         env_file = ".env"
