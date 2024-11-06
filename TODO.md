@@ -3,6 +3,7 @@
 - **Page Actions**: expand page actions exposed via REST API.
 - **Page Actions**: Fine-tuning existing methods.
 - **Page Actions**: Custom script execution on page session - allow users to inject and execute custom JavaScript in each session’s context, offering flexibility for automation and interaction beyond basic navigation.
+- **BrowserManager**: implement optional wait logic for `get_next_browser()`
 
 #### Features
 - **Session SnapShot** - Support session snapshots to save state, enabling resumption or replication of specific sessions.  
