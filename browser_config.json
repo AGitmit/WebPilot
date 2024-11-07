@@ -1,0 +1,11 @@
+{
+    "headless": true,
+    "autoClose": false,
+    "args": [
+        "--disable-web-security",
+        "--host-resolver-rules=MAP localhost 127.0.0.1",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--disable-dev-shm-usage"
+    ]
+}
