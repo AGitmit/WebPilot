@@ -27,7 +27,7 @@ class BaseConfig(BaseSettings):
     browser_auto_close: bool = Field(default=False)
     pages_cache_ttl: float = Field(default=3600)  # 1 hour
     browser_pages_cap: int = Field(default=100)  # max pages cached in memory
-
+    browser_config_file: str = f"{root_folder}/browser_config.json"
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
 
