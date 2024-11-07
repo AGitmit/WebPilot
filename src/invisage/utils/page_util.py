@@ -22,11 +22,11 @@ class PageUtil:
             elapsed += interval
         raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
 
-    @staticmethod
+    @classmethod
     @pyd.validate_arguments
     @log_execution_metrics
     async def perform_page_action(
-        page: Page, action: PageActionType, **kwargs
+        cls, page: Page, action: PageActionType, **kwargs
     ) -> Union[PageContent, Snapshot]:
         try:
             match action:
