@@ -45,7 +45,7 @@ class BrowserManager:
         for _ in range(len(self.browsers)):
             browser: Browser = self.browsers[self.rr_current_index]
             # Check if browser has capacity for more pages
-            if browser.page_count < conf.browser_pages_cap:
+            if browser.page_count < conf.max_cached_items:
                 self.rr_current_index = (self.rr_current_index + 1) % len(self.browsers)
                 return browser
             # Move to the next browser

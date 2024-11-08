@@ -8,6 +8,9 @@ from invisage.exc import UnableToPerformActionError
 from typing import Union
 
 
+SNAPSHOT = None
+
+
 class PageUtil:
     @staticmethod
     async def _wait_until_contains(
@@ -28,6 +31,7 @@ class PageUtil:
     async def perform_page_action(
         cls, page: Page, action: PageActionType, **kwargs
     ) -> Union[PageContent, Snapshot]:
+        global SNAPSHOT  # only for testing
         try:
             match action:
                 case PageActionType.CLICK:
@@ -67,12 +71,18 @@ class PageUtil:
                     await page.goForward(options)
 
                 case PageActionType.SAVE_SNAPSHOT:
-                    return await page.save_snapshot(page)
+                    SNAPSHOT = await page.save_snapshot(page)
 
                 case PageActionType.RESTORE_SNAPSHOT:
-                    page = await page.restore_from_snapshot(snapshot)
+                    page = await page.restore_from_snapshot(SNAPSHOT)
+
+                case PageActionType.EVALUATE:
+                    code = kwargs.pop("code")
+                    args = kwargs.pop("args", [])
+                    await page.evaluate(code, *args)
 
             return await page.extract_page_contents(page)
+
         except Exception as e:
             logger.bind(
                 browser_id=page.parent_browser, session_id=str(page.session_id), page_action=action

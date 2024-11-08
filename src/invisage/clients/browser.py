@@ -24,7 +24,7 @@ class Browser:
         self._check_chromium()
 
         self.id_ = id_
-        self.pages = cachetools.TTLCache(maxsize=conf.browser_pages_cap, ttl=conf.pages_cache_ttl)
+        self.pages = cachetools.TTLCache(maxsize=conf.max_cached_items, ttl=conf.cache_ttl)
         self.config = config or self._load_browser_config()
         asyncio.get_event_loop().run_until_complete(self._instantiate_browser())
 
@@ -95,7 +95,7 @@ class Browser:
 
     async def retrieve_page_session(self, session_id: uuid.UUID) -> pyppeteer.page.Page:
         "Retrieves a page-session from cache memory"
-        page: pyppeteer.page.Page = self.browser.pages.get(session_id)
+        page: pyppeteer.page.Page = self.browser.pages.pop(session_id)
         if not page:
             raise KeyError(
                 f"Page not found [page: '{session_id}'] - session has already been closed!"
