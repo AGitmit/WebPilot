@@ -1,15 +1,16 @@
-import asyncio
+from invisage.schemas.pages import Snapshot
 
 
 class SnapshotUtil:
     @classmethod
-    async def capture_session_snapshot(cls, page):
+    async def capture_session_snapshot(cls, page) -> Snapshot:
         # Capture the URL
-        snapshot = {"url": page.url}
+        snapshot = Snapshot()
+        snapshot.url = page.url
 
         # 1. Capture cookies
         cookies = await page.cookies()
-        snapshot["cookies"] = cookies
+        snapshot.cookies = cookies
 
         # 2. Capture Local Storage
         local_storage = await page.evaluate(
@@ -22,7 +23,7 @@ class SnapshotUtil:
             return ls;
         }"""
         )
-        snapshot["local_storage"] = local_storage
+        snapshot.local_storage = local_storage
 
         # 3. Capture Session Storage
         session_storage = await page.evaluate(
@@ -35,7 +36,7 @@ class SnapshotUtil:
             return ss;
         }"""
         )
-        snapshot["session_storage"] = session_storage
+        snapshot.session_storage = session_storage
 
         # 4. Capture DOM State (basic example for input values)
         dom_state = await page.evaluate(
@@ -47,7 +48,7 @@ class SnapshotUtil:
             return state;
         }"""
         )
-        snapshot["dom_state"] = dom_state
+        snapshot.dom_state = dom_state
 
         # 5. Capture Network Stack - save request and response details
         network_requests = []
@@ -74,7 +75,7 @@ class SnapshotUtil:
         # Intercept requests and responses
         await page.setRequestInterception(True)
         await page.goto(page.url, waitUntil="networkidle2")
-        snapshot["network_requests"] = network_requests
+        snapshot.network_requests = network_requests
 
         # 6. Capture Custom Scripts (optional) - Example of an executed script
         custom_scripts = []
@@ -86,18 +87,18 @@ class SnapshotUtil:
                 "state": await page.evaluate("document.body.style.backgroundColor"),
             }
         )
-        snapshot["custom_scripts"] = custom_scripts
+        snapshot.custom_scripts = custom_scripts
 
         # 7. Metadata
-        snapshot["timestamp"] = str(await page.evaluate("new Date().toISOString()"))
-        snapshot["user_agent"] = await page.evaluate("navigator.userAgent")
-        snapshot["viewport_size"] = await page.viewportSize()
+        snapshot.timestamp = str(await page.evaluate("new Date().toISOString()"))
+        snapshot.user_agent = await page.evaluate("navigator.userAgent")
+        snapshot.viewport_size = await page.viewportSize()
 
         # Return the complete snapshot
         return snapshot
 
     @classmethod
-    async def restore_session(cls, page, snapshot):
+    async def restore_session(cls, page, snapshot: Snapshot):
         # Set the user agent to match the original session
         await page.setUserAgent(snapshot["user_agent"])
 
