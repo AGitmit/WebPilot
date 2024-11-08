@@ -3,6 +3,7 @@ import os
 from pyppeteer import executablePath
 from pydantic import BaseSettings, Field
 from typing import Literal, Union
+from invisage.schemas.constants.cache import CacheProvider
 
 
 class BaseConfig(BaseSettings):
@@ -25,11 +26,13 @@ class BaseConfig(BaseSettings):
     chromium_path: str = Field(default_factory=executablePath)
     browser_headless: bool = Field(default=True)
     browser_auto_close: bool = Field(default=False)
-    pages_cache_ttl: float = Field(default=3600)  # 1 hour
-    browser_pages_cap: int = Field(default=100)  # max pages cached in memory
+    max_cached_items: int = Field(default=100)  # max pages cached in memory
     browser_config_file: str = f"{root_folder}/browser_config.json"
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
+    # caching
+    cache_ttl: float = Field(default=3600)  # 1 hour
+    cache_provider: CacheProvider = Field(default=CacheProvider.IN_MEMORY)
 
     class Config:
         case_sensitive = False
