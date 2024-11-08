@@ -9,3 +9,6 @@ class PageActionType(Enum):
     GOTO = "go_to"
     GO_BACK = "go_back"
     GO_FORWARD = "go_forward"
+    EVALUATE = "evaluate"
+    SAVE_SNAPSHOT = "save_snapshot"
+    RESTORE_SNAPSHOT = "restore_snapshot"
