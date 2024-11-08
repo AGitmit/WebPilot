@@ -8,7 +8,7 @@ import pydantic as pyd
 from invisage.config import config as conf
 from invisage.logger import logger
 from contextlib import asynccontextmanager
-
+from invisage.utils.ttl_cache import TTLCache
 
 __all__ = ["Browser"]
 
@@ -19,12 +19,13 @@ class Browser:
     pages: cachetools.TTLCache
     config: dict
 
+    @pyd.validate_arguments
     def __init__(self, id_: int, config: dict = None) -> None:
         "Create Browser instance"
         self._check_chromium()
 
         self.id_ = id_
-        self.pages = cachetools.TTLCache(maxsize=conf.max_cached_items, ttl=conf.cache_ttl)
+        self.pages = TTLCache()
         self.config = config or self._load_browser_config()
         asyncio.get_event_loop().run_until_complete(self._instantiate_browser())
 
