@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from web_weaver.config import config as conf
+from invisage.config import config as conf
 
 
 router = APIRouter(prefix="")
@@ -10,7 +10,7 @@ router = APIRouter(prefix="")
 async def index():
     """Returns the service's basic information."""
     return dict(
-        service="🕸️👻 WebWeaver",
+        service="🕸️👻 Invisage",
         environment=conf.environment,
         version=conf.app_version,
     )

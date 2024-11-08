@@ -2,11 +2,11 @@ import uuid
 import asyncio
 
 from fastapi import APIRouter, status, HTTPException
-from web_weaver.config import config as conf
-from web_weaver.clients.controller import BrowserController
-from web_weaver.schemas.requests import FetchRequest, PageActionRequest
-from web_weaver.schemas.responses import PageContentResponse
-from web_weaver.logger import logger
+from invisage.config import config as conf
+from invisage.clients.controller import BrowserController
+from invisage.schemas.requests import FetchRequest, PageActionRequest
+from invisage.schemas.responses import PageContentResponse
+from invisage.logger import logger
 
 
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
