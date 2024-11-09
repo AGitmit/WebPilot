@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from web_pilot.config import config as conf
 from web_pilot.clients.manager import BrowserManager
 from web_pilot.logger import logger
+from web_pilot.exc import BrowserPoolCapacityReachedError
 
 
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
@@ -19,6 +20,10 @@ async def create_browser(config: Optional[dict] = None):
             BrowserManager.create_new_browser(config), timeout=conf.default_timeout
         )
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"browser_id": browser_id})
+
+    except BrowserPoolCapacityReachedError as e:
+        logger.error(e)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
     except asyncio.TimeoutError as e:
         msg = "Request has been timed-out!"
@@ -47,4 +52,6 @@ async def create_browser(browser_id: uuid.UUID, force: bool = Query(default=Fals
 
 @router.get("/list", status_code=status.HTTP_200_OK)
 async def list_browsers():
-    return JSONResponse(status_code=status.HTTP_200_OK, content=BrowserManager.browsers)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content=[str(b) for b in BrowserManager.browsers]
+    )
