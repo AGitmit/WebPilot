@@ -12,28 +12,14 @@ from invisage.logger import logger
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
 
 
-@router.post("/fetch/url", response_model=PageContentResponse, status_code=status.HTTP_200_OK)
-async def fetch_url(args: FetchRequest):
-    with logger.contextualize(transaction_id=args.transaction_id):
-        try:
-            return await asyncio.wait_for(
-                BrowserController.fetch_page_contents(**args.dict()),
-                timeout=conf.default_timeout,
-            )
-
-        except asyncio.TimeoutError as e:
-            msg = "Request has been timed-out!"
-            logger.error(msg)
-            raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
-
-        except Exception as e:
-            logger.error(e)
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-
-
-@router.get("/sessions/page/open/{session_id}", status_code=status.HTTP_201_CREATED)
-async def start_page_session(session_id: uuid.UUID):
+@router.get(
+    "/sessions/open",
+    status_code=status.HTTP_201_CREATED,
+    description="Start a new, in-memory, remote page session",
+)
+async def start_page_session():
     try:
+        session_id = uuid.uuid4()
         return await asyncio.wait_for(
             BrowserController.start_page_session(session_id), timeout=conf.default_timeout
         )
@@ -48,7 +34,7 @@ async def start_page_session(session_id: uuid.UUID):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.get("/sessions/page/close/{session_id}", status_code=status.HTTP_200_OK)
+@router.get("/sessions/close/{session_id}", status_code=status.HTTP_200_OK)
 async def close_page_session(session_id: uuid.UUID):
     try:
         return await asyncio.wait_for(
