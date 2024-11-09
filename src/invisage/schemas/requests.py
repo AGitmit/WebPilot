@@ -4,24 +4,8 @@ import pydantic as pyd
 import re
 
 from typing import Optional
-from web_weaver.schemas import sanitize_str
-from web_weaver.schemas.constants.page_action_type import PageActionType
-
-
-class FetchRequest(pyd.BaseModel):
-    transaction_id: uuid.UUID
-    url: str
-
-    @pyd.validator("url")
-    def sanitize_str(cls, value: str):
-        if re.search(sanitize_str, value):
-            raise ValueError(
-                f"Illegal characters found in '{value}' - allowed special characters are '-' or '_'"
-            )
-        return value
-
-    class Config:
-        extra = "allow"
+from invisage.schemas import sanitize_str
+from invisage.schemas.constants.page_action_type import PageActionType
 
 
 class PageActionRequest(pyd.BaseModel):
