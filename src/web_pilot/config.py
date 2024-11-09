@@ -23,16 +23,20 @@ class BaseConfig(BaseSettings):
     log_file_location: str = root_folder
 
     # browser config
-    chromium_path: str = Field(default_factory=executablePath)
-    browser_headless: bool = Field(default=True)
-    browser_auto_close: bool = Field(default=False)
-    max_cached_items: int = Field(default=100)  # max pages cached in memory
+    auto_scale: bool = (
+        True  # This ignores which browser is used and evenly splits the load between all browsers
+    )
+    balance_load: bool = True
+    max_browsers_cap: int = 1
+    max_cached_items: int = 100  # max pages cached in memory
     browser_config_file: str = f"{root_folder}/default_browser_config.json"
+    # Chromium
+    chromium_path: str = Field(default_factory=executablePath)
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
     # caching
-    cache_ttl: float = Field(default=3600)  # 1 hour
-    cache_provider: CacheProvider = Field(default=CacheProvider.IN_MEMORY)
+    cache_ttl: float = 3600  # 1 hour
+    cache_provider: CacheProvider = CacheProvider.IN_MEMORY
 
     class Config:
         case_sensitive = False
