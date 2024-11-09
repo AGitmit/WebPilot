@@ -42,7 +42,7 @@ async def get_browser(browser_id: uuid.UUID):
         if not browser:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Browser not found")
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"browser_id": browser_id})
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"browser": str(browser)})
 
     except Exception as e:
         logger.error(e)
