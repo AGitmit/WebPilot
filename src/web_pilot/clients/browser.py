@@ -33,7 +33,9 @@ class Browser:
         try:
             config.update(json.loads(open(conf.browser_config_file).read()))
         except FileNotFoundError:
-            logger.info("'browser_config.json' file not found - using default configurations")
+            logger.info(
+                "'default_browser_config.json' file not found - using default configurations"
+            )
         except Exception as e:
             logger.error(f"{str(e)} - using default configurations")
         return config

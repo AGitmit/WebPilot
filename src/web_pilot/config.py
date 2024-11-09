@@ -27,7 +27,7 @@ class BaseConfig(BaseSettings):
     browser_headless: bool = Field(default=True)
     browser_auto_close: bool = Field(default=False)
     max_cached_items: int = Field(default=100)  # max pages cached in memory
-    browser_config_file: str = f"{root_folder}/browser_config.json"
+    browser_config_file: str = f"{root_folder}/default_browser_config.json"
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
     # caching
