@@ -35,6 +35,20 @@ async def create_browser(config: Optional[dict] = None):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@router.get("/{browser_id}", status_code=status.HTTP_200_OK)
+async def get_browser(browser_id: uuid.UUID):
+    try:
+        browser = await BrowserManager.get_browser_by_id(browser_id)
+        if not browser:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Browser not found")
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"browser_id": browser_id})
+
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @router.patch("/remove/{browser_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def create_browser(browser_id: uuid.UUID, force: bool = Query(default=False)):
     try:
