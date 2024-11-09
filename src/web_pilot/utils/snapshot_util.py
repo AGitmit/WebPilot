@@ -1,4 +1,4 @@
-from invisage.schemas.pages import Snapshot
+from web_pilot.schemas.pages import Snapshot
 
 
 class SnapshotUtil:

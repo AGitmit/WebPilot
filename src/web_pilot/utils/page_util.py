@@ -1,10 +1,10 @@
 import asyncio
 import pydantic as pyd
 
-from invisage.clients.page import Page, Snapshot, PageContent
-from invisage.schemas.constants.page_action_type import PageActionType
-from invisage.utils.metrics import log_execution_metrics, logger
-from invisage.exc import UnableToPerformActionError
+from web_pilot.clients.page import Page, Snapshot, PageContent
+from web_pilot.schemas.constants.page_action_type import PageActionType
+from web_pilot.utils.metrics import log_execution_metrics, logger
+from web_pilot.exc import UnableToPerformActionError
 from typing import Union
 
 

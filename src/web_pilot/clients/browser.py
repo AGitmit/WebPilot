@@ -5,25 +5,24 @@ import json
 import uuid
 import pydantic as pyd
 
-from invisage.config import config as conf
-from invisage.logger import logger
+from web_pilot.config import config as conf
+from web_pilot.logger import logger
 from contextlib import asynccontextmanager
-from invisage.utils.ttl_cache import TTLCache
-
-__all__ = ["Browser"]
+from web_pilot.utils.ttl_cache import TTLCache
 
 
 class Browser:
-    id_: int
+    id_: uuid.UUID
     browser: pyppeteer.browser.Browser
     pages: cachetools.TTLCache
     config: dict
 
-    @pyd.validate_arguments
-    def __init__(self, id_: int, config: dict = None) -> None:
-        "Create Browser instance"
-        self._check_chromium()
+    def __repr__(self) -> str:
+        return f"Browser(id={self.id_}, page_count={self.page_count()}, config={self.config})"
 
+    @pyd.validate_arguments
+    def __init__(self, id_: uuid.UUID, config: dict = None) -> None:
+        "Create Browser instance"
         self.id_ = id_
         self.pages = TTLCache()
         self.config = config or self._load_browser_config()
@@ -53,12 +52,6 @@ class Browser:
             ],
             "executablePath": conf.chromium_path,
         }
-
-    def _check_chromium(self):
-        if not pyppeteer.chromium_downloader.check_chromium():
-            logger.info("Downloading Chromium...")
-            pyppeteer.chromium_downloader.download_chromium()
-            logger.info("Chromium downloaded successfully")
 
     async def _instantiate_browser(self) -> pyppeteer.browser.Browser:
         "Create Pyppeteer browser instance"

@@ -1,5 +1,5 @@
 from tinydb import TinyDB, Query
-from invisage.utils.db import BaseDB
+from web_pilot.utils.db import BaseDB
 
 where = Query()
 

@@ -6,10 +6,10 @@ import json
 
 from contextlib import asynccontextmanager
 
-from invisage.utils.metrics import log_execution_metrics
-from invisage.logger import logger
-from invisage.schemas.constants.page_action_type import PageActionType
-from invisage.clients.browser import Browser
+from web_pilot.utils.metrics import log_execution_metrics
+from web_pilot.logger import logger
+from web_pilot.schemas.constants.page_action_type import PageActionType
+from web_pilot.clients.browser import Browser
 
 
 class BrowserController:

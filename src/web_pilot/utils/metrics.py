@@ -2,7 +2,7 @@ import time
 import functools
 import asyncio
 
-from web_weaver.logger import logger
+from web_pilot.logger import logger
 
 
 def log_execution_metrics(func):

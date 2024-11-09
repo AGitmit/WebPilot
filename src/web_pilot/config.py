@@ -3,7 +3,7 @@ import os
 from pyppeteer import executablePath
 from pydantic import BaseSettings, Field
 from typing import Literal, Union
-from invisage.schemas.constants.cache import CacheProvider
+from web_pilot.schemas.constants.cache import CacheProvider
 
 
 class BaseConfig(BaseSettings):

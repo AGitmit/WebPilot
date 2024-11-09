@@ -2,9 +2,9 @@
 line-length = 100
 
 [tool.poetry]
-name = "👻 Invisage"
+name = "👨‍✈️ WebPilot"
 version = "0.1.0"
-description = "Envision the Web, Invisibly"
+description = "Controlling the web - redefined"
 authors = ["Amit Nakash"]
 readme = "README.md"
 packages = [

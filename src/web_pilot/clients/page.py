@@ -3,9 +3,9 @@ import uuid
 import json
 
 from pyppeteer import page
-from invisage.config import config as conf
-from invisage.utils.page_util import PageUtil
-from invisage.schemas.pages import Snapshot, PageContent
+from web_pilot.config import config as conf
+from web_pilot.utils.page_util import PageUtil
+from web_pilot.schemas.pages import Snapshot, PageContent
 
 
 __all__ = ["Page", "Snapshot", "PageContent"]

@@ -1,6 +1,6 @@
-from invisage.clients.db.tinydb import TinyDBAdapter
-from invisage.clients.db.mongo import MongoDBAdapter
-from invisage.utils.db import BaseDB
+from web_pilot.clients.db.tinydb import TinyDBAdapter
+from web_pilot.clients.db.mongo import MongoDBAdapter
+from web_pilot.utils.db import BaseDB
 
 
 # Factory to choose the appropriate database

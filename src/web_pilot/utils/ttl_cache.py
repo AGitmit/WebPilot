@@ -2,8 +2,8 @@ import pydantic as pyd
 import cachetools
 
 from typing import Union
-from invisage.schemas.constants.cache import CacheProvider
-from invisage.config import config as conf
+from web_pilot.schemas.constants.cache import CacheProvider
+from web_pilot.config import config as conf
 
 
 class TTLCache:

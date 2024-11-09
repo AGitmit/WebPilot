@@ -1,7 +1,7 @@
 import sys
 
 from loguru import logger
-from web_weaver.config import config as conf
+from web_pilot.config import config as conf
 
 
 def init_logger(**context):

@@ -2,14 +2,14 @@ import uuid
 import asyncio
 
 from fastapi import APIRouter, status, HTTPException
-from invisage.config import config as conf
-from invisage.clients.controller import BrowserController
-from invisage.schemas.requests import FetchRequest, PageActionRequest
-from invisage.schemas.responses import PageContentResponse
-from invisage.logger import logger
+from web_pilot.config import config as conf
+from web_pilot.clients.controller import BrowserController
+from web_pilot.schemas.requests import PageActionRequest
+from web_pilot.schemas.responses import PageContentResponse
+from web_pilot.logger import logger
 
 
-router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
+router = APIRouter(prefix=f"{conf.v1_url_prefix}/sessions", tags=["Page Sessions"])
 
 
 @router.get(

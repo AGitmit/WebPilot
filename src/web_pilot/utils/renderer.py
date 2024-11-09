@@ -1,6 +1,6 @@
 import pydantic as pyd
 
-from web_weaver.utils.metrics import log_execution_metrics
+from web_pilot.utils.metrics import log_execution_metrics
 from pyppeteer.page import Page
 
 

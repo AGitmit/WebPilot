@@ -4,8 +4,8 @@ import pydantic as pyd
 import re
 
 from typing import Optional
-from invisage.schemas import sanitize_str
-from invisage.schemas.constants.page_action_type import PageActionType
+from web_pilot.schemas import sanitize_str
+from web_pilot.schemas.constants.page_action_type import PageActionType
 
 
 class PageActionRequest(pyd.BaseModel):

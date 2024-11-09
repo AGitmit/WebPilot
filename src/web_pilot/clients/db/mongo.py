@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from invisage.utils.db import BaseDB
+from web_pilot.utils.db import BaseDB
 
 
 class MongoDBAdapter(BaseDB):
