@@ -9,9 +9,14 @@ from web_pilot.exc import BrowserPoolCapacityReachedError, NoAvailableBrowserErr
 
 
 class BrowserManager:
-    _pool = {}
-    max_browsers = conf.max_browsers_cap
-    rr_current_index = 0
+    _pool: dict = {}
+    max_browsers: int = conf.max_browsers_cap
+    rr_current_index: int = 0
+    auto_scale_browsers: bool = conf.auto_scale
+
+    @property
+    def browsers(cls) -> list[Browser]:
+        return list(cls._pool.values())
 
     @classmethod
     @pyd.validate_arguments
@@ -44,10 +49,15 @@ class BrowserManager:
 
     @classmethod
     async def get_next_browser(cls) -> pyppeteer.browser.Browser:
-        "Get the next available browser in the pool"
+        """
+        Get the next available browser in the pool - round-robin.
+        If all browsers are full, raises an `NoAvailableBrowserError` exception.
+        This method is used if `balance_load` is set to `True`.
+        """
 
-        if len(cls._pool) < cls.max_browsers:
-            return cls.create_new_browser()
+        if cls.auto_scale_browsers:
+            if len(cls._pool) < cls.max_browsers:
+                return cls.create_new_browser()
 
         for _ in range(len(cls.browsers)):
             browser: Browser = cls.browsers[cls.rr_current_index]
@@ -62,6 +72,8 @@ class BrowserManager:
         # TODO: implement optional wait logic
         raise NoAvailableBrowserError("All browsers are currently at capacity.")
 
-    @property
-    def browsers(cls) -> list[Browser]:
-        return list(str(b) for b in cls._pool.values())
+    @classmethod
+    def scale_up(cls):
+        if cls.auto_scale_browsers:
+            if len(cls._pool) < cls.max_browsers:
+                return cls.create_new_browser()
