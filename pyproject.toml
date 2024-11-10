@@ -26,6 +26,7 @@ uvicorn = "0.23.2"
 cachetools = "5.3.3"
 tinydb = "^4.8.2"
 pymongo = "^4.10.1"
+fake-useragent = "^1.5.1"
 
 
 [build-system]

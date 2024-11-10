@@ -139,6 +139,17 @@ trio = ["trio (>=0.23)"]
 wmi = ["wmi (>=1.5.1)"]
 
 [[package]]
+name = "fake-useragent"
+version = "1.5.1"
+description = "Up-to-date simple useragent faker with real world database"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fake-useragent-1.5.1.tar.gz", hash = "sha256:6387269f5a2196b5ba7ed8935852f75486845a1c95c50e72460e6a8e762f5c49"},
+    {file = "fake_useragent-1.5.1-py3-none-any.whl", hash = "sha256:57415096557c8a4e23b62a375c21c55af5fd4ba30549227f562d2c4f5b60e3b3"},
+]
+
+[[package]]
 name = "fastapi"
 version = "0.109.1"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -750,4 +761,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12.2"
-content-hash = "e4bca696ea25f17d3a592e5cc1bb820c4dc34a72c26f12ba3f0300a868deb315"
+content-hash = "d7a2d2069898e78b61842be6aab8ae31f8d3a21aebcb1cf1671caae2fd13569e"
