@@ -9,13 +9,13 @@ from contextlib import asynccontextmanager
 from web_pilot.utils.metrics import log_execution_metrics
 from web_pilot.logger import logger
 from web_pilot.schemas.constants.page_action_type import PageActionType
-from web_pilot.clients.browser import Browser
+from web_pilot.clients.browser import LeasedBrowser
 
 
 class BrowserController:
     @classmethod
     @asynccontextmanager
-    async def get_new_page(cls, browser: Browser):
+    async def get_new_page(cls, browser: LeasedBrowser):
         new_page = await browser.browser.newPage()
         try:
             yield new_page
@@ -23,7 +23,7 @@ class BrowserController:
             await new_page.close()
 
     @classmethod
-    async def start_remote_page_session(cls, browser: Browser) -> uuid.UUID:
+    async def start_remote_page_session(cls, browser: LeasedBrowser) -> uuid.UUID:
         "Created new page and store it in cache by it's session-ID"
         session_id = uuid.uuid4().__str__()
         new_page = await browser.browser.newPage()
@@ -32,7 +32,7 @@ class BrowserController:
 
     @classmethod
     async def retrieve_page_session(
-        cls, browser: Browser, session_id: uuid.UUID
+        cls, browser: LeasedBrowser, session_id: uuid.UUID
     ) -> pyppeteer.page.Page:
         "Retrieves a page-session from cache memory"
         page: pyppeteer.page.Page = browser.pages.get(session_id)
@@ -43,7 +43,7 @@ class BrowserController:
         return page
 
     @classmethod
-    async def close_remove_page_session(cls, browser: Browser, session_id: uuid.UUID) -> None:
+    async def close_remove_page_session(cls, browser: LeasedBrowser, session_id: uuid.UUID) -> None:
         "Removes a cached page-session from memory - ending the session"
         page = await cls.retrieve_page_session(session_id)
         try:

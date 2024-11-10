@@ -4,7 +4,7 @@ import pydantic as pyd
 
 from typing import Optional
 from web_pilot.config import config as conf
-from web_pilot.clients.browser import Browser
+from web_pilot.clients.browser import LeasedBrowser
 from web_pilot.exc import BrowserPoolCapacityReachedError, NoAvailableBrowserError
 
 
@@ -15,7 +15,7 @@ class BrowserManager:
     auto_scale_browsers: bool = conf.auto_scale
 
     @property
-    def browsers(cls) -> list[Browser]:
+    def browsers(cls) -> list[LeasedBrowser]:
         return list(cls._pool.values())
 
     @classmethod
@@ -27,7 +27,7 @@ class BrowserManager:
             raise BrowserPoolCapacityReachedError(
                 f"Max number of browsers in pool reached: {cls.max_browsers}"
             )
-        cls._pool[browser_id] = Browser(browser_id, config)
+        cls._pool[browser_id] = LeasedBrowser(browser_id, config)
         return browser_id
 
     @classmethod
@@ -54,13 +54,8 @@ class BrowserManager:
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
         This method is used if `balance_load` is set to `True`.
         """
-
-        if cls.auto_scale_browsers:
-            if len(cls._pool) < cls.max_browsers:
-                return cls.create_new_browser()
-
         for _ in range(len(cls.browsers)):
-            browser: Browser = cls.browsers[cls.rr_current_index]
+            browser: LeasedBrowser = cls.browsers[cls.rr_current_index]
             # Check if browser has capacity for more pages
             if browser.page_count < conf.max_cached_items:
                 cls.rr_current_index = (cls.rr_current_index + 1) % len(cls.browsers)

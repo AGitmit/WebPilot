@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from web_pilot.utils.ttl_cache import TTLCache
 
 
-class Browser:
+class LeasedBrowser:
     id_: uuid.UUID
     browser: pyppeteer.browser.Browser
     pages: cachetools.TTLCache
@@ -21,47 +21,70 @@ class Browser:
         return f"Browser(id={self.id_}, page_count={self.page_count()}, config={self.config})"
 
     @pyd.validate_arguments
-    def __init__(self, id_: uuid.UUID, config: dict = None) -> None:
+    def __init__(
+        self,
+        id_: uuid.UUID,
+        headless: bool = True,
+        auto_close: bool = False,
+        incognito: bool = False,
+        gpu: bool = False,
+        privacy: bool = False,
+        ignore_http_errors: bool = True,
+        spa_mode: bool = False,
+    ) -> None:
         "Create Browser instance"
         self.id_ = id_
         self.pages = TTLCache()
-        self.config = config or self._load_browser_config()
+        self.config = self._load_browser_config(
+            headless, auto_close, incognito, gpu, privacy, ignore_http_errors, spa_mode
+        )
         asyncio.get_event_loop().run_until_complete(self._instantiate_browser())
 
-    def _load_browser_config(self) -> dict:
-        config = self._get_default_config()
+    def _load_browser_config(
+        self,
+        headless: bool,
+        auto_close: bool,
+        incognito: bool,
+        gpu: bool,
+        privacy: bool,
+        ignore_http_errors: bool,
+        spa_mode: bool,
+    ) -> dict:
         try:
-            config.update(json.loads(open(conf.browser_config_file).read()))
-        except FileNotFoundError:
-            logger.info(
-                "'default_browser_config.json' file not found - using default configurations"
-            )
+            config = {
+                "headless": True if headless else False,
+                "autoClose": True if auto_close else False,
+                "userDataDir": conf.user_data_dir,
+                "executablePath": conf.chromium_path,
+                "args": [
+                    "--host-resolver-rules=MAP localhost 127.0.0.1",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                ],
+            }
+            if incognito:
+                config["args"].append("--incognito")
+            if gpu:
+                config["args"].append("--disable-gpu")
+            if privacy:
+                config["args"].append("--disable-web-security")
+                config["args"].append("--disable-features=IsolateOrigins,site-per-process")
+                config["args"].append("--no-referrers")
+            if ignore_http_errors:
+                config["ignoreHTTPSErrors"] = True
+            if spa_mode:
+                config["args"].append("--single-process")
+                config["args"].append("--disable-background-networking")
+                config["args"].append("--disable-background-timer-throttling")
+            return config
+
         except Exception as e:
-            logger.error(f"{str(e)} - using default configurations")
-        return config
+            logger.error(f"Error loading browser config file; {e}")
+            raise
 
-    @staticmethod
-    def _get_default_config() -> dict:
-        return {
-            "headless": conf.browser_headless,
-            "autoClose": conf.browser_auto_close,
-            "args": [
-                "--disable-web-security",
-                "--host-resolver-rules=MAP localhost 127.0.0.1",
-                "--disable-gpu",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-            ],
-            "executablePath": conf.chromium_path,
-        }
-
-    async def _instantiate_browser(self) -> pyppeteer.browser.Browser:
+    async def _instantiate_browser(self) -> None:
         "Create Pyppeteer browser instance"
-
-        async def create():
-            self.browser = await pyppeteer.launch(**self.config)
-
-        await create()
+        self.browser = await pyppeteer.launch(**self.config)
 
     def page_count(self) -> int:
         return len(self.pages)

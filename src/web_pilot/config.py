@@ -30,6 +30,7 @@ class BaseConfig(BaseSettings):
     max_browsers_cap: int = 1
     max_cached_items: int = 100  # max pages cached in memory
     browser_config_file: str = f"{root_folder}/default_browser_config.json"
+    user_data_dir: str = f"{root_folder}/user_data"
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
     # etc.
