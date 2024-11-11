@@ -8,7 +8,7 @@
 - **scaling**: finish implementing logic for scaling browser pools (based on category).
 - **Browser pools logic**: user creates a pool with set configurations for the browser within the pool. and then the pool itself is what scales. it is abstracted from the user. and thus the user wont care about the browsers within the pool.
 - **Page functionality**: add ability to set Geo-location on page session.
-
+- **Update .env.default**
 
 #### API
 ##### Session Control Endpoints:
