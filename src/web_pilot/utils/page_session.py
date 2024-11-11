@@ -15,7 +15,7 @@ class PageSession:
         self.parent: int = kwargs.get("parent", None)
 
     def __repr__(self) -> str:
-        return f"Page(id={self.session_id}, parent={self.parent})"
+        return f"Page(id={self.session_id.__str__()}, parent={self.parent})"
 
     @property
     def page(self) -> pyppeteer.page.Page:
