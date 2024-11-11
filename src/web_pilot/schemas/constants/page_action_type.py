@@ -12,3 +12,5 @@ class PageActionType(Enum):
     EVALUATE = "evaluate"
     SAVE_SNAPSHOT = "save_snapshot"
     RESTORE_SNAPSHOT = "restore_snapshot"
+    SET_GEOLOCATION = "set_geolocation"
+    SET_VIEWPORT = "set_viewport"
