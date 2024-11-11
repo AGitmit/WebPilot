@@ -8,26 +8,25 @@ from web_pilot.config import config as conf
 
 class TTLCache:
     def __init__(self) -> None:
-        self.cache = self._init_cache()
-        self._max_items = conf.max_cached_items
-        self._ttl = conf.cache_ttl
+        self._cache = self._init_cache(max_items=conf.max_cached_items, ttl=conf.cache_ttl)
 
-    def _init_cache(self) -> Union[cachetools.TTLCache]:
+    def _init_cache(self, max_items: int = None, ttl: int = None) -> Union[cachetools.TTLCache]:
         if self._provider is None:
             match conf.cache_provider:
                 case CacheProvider.IN_MEMORY:
-                    self._provider = cachetools.TTLCache(
-                        maxsize=conf.max_cached_items, ttl=conf.cache_ttl
-                    )
+                    self._provider = cachetools.TTLCache(maxsize=max_items, ttl=ttl)
                 case _:
                     raise ValueError("Unknown cache provider")
         return self._provider
 
+    def len(self) -> int:
+        return len(self._cache)
+
     def get_item(self, key: str):
-        return self.cache.__getitem__(key)
+        return self._cache.__getitem__(key)
 
     def set_item(self, key: str, value: pyd.BaseModel) -> None:
-        self.cache.__setitem__(key, value)
+        self._cache.__setitem__(key, value)
 
     def delete_item(self, key: str) -> None:
-        self.cache.__delitem__(key)
+        self._cache.__delitem__(key)

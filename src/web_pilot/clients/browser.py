@@ -17,7 +17,7 @@ from web_pilot.utils.fake_ua import fake_user_agent, Platform, BrowserTypes
 class LeasedBrowser:
     id_: uuid.UUID
     _browser: pyppeteer.browser.Browser
-    pages: cachetools.TTLCache
+    pages: TTLCache
     platform: Platform
     browser_type: BrowserTypes
 
@@ -110,7 +110,7 @@ class LeasedBrowser:
         self._browser = await pyppeteer.launch(**self.config)
 
     def page_count(self) -> int:
-        return len(self.pages)
+        return self.pages.len()
 
     async def close(self) -> None:
         await self._browser.close()
@@ -119,22 +119,22 @@ class LeasedBrowser:
         "Created new page and store it in cache by it's session-ID"
         session_id = uuid.uuid4().__str__()
         new_page_session = PageSession(page=await self._browser.newPage(), parent=self.id_)
-        self.pages[session_id] = new_page_session
+        self.pages.set_item(session_id, new_page_session)
         logger.bind(browser_id=self.id_).info(
             f"Created new page session: '{session_id}' successfully"
         )
         return session_id
 
-    async def retrieve_page_session(self, session_id: uuid.UUID) -> PageSession:
+    def retrieve_page_session(self, session_id: uuid.UUID) -> PageSession:
         "Retrieves a page-session from cache memory"
-        page_session: PageSession = self._browser.pages.pop(session_id)
+        page_session: PageSession = self.pages.get_item(session_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{session_id}'] - session has already been closed!")
 
     async def close_page_session(self, session_id: uuid.UUID) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
-        page_session = await self.retrieve_page_session(session_id)
+        page_session = self.retrieve_page_session(session_id)
         try:
             await page_session.page.close()
         except Exception as e:
@@ -144,4 +144,4 @@ class LeasedBrowser:
             logger.bind(browser_id=self.id_, session_id=session_id).info(
                 "Page session closed successfully"
             )
-            del self._browser.pages[session_id]
+            del self.pages.delete_item(session_id)
