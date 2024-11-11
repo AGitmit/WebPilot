@@ -5,16 +5,18 @@ from typing import Optional
 from fastapi import APIRouter, status, HTTPException, Query
 from fastapi.responses import JSONResponse
 from web_pilot.config import config as conf
-from web_pilot.clients.manager import BrowserPool
+from web_pilot.clients.browser_pool import BrowserPool
 from web_pilot.logger import logger
 from web_pilot.exc import BrowserPoolCapacityReachedError
 
 
-router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser", tags=["Headless Browser"])
+router = APIRouter(prefix=f"{conf.v1_url_prefix}/browser-pool", tags=["Browser-Pool"])
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create_browser(config: Optional[dict] = None):
+@router.post(
+    "/create", status_code=status.HTTP_201_CREATED, description="Create a new browser-pool"
+)
+async def create_browser_pool(config: Optional[dict] = None):
     try:
         browser_id = await asyncio.wait_for(
             BrowserPool.create_new_browser(config), timeout=conf.default_timeout

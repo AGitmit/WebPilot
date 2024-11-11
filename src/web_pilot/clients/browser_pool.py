@@ -10,8 +10,8 @@ from web_pilot.exc import BrowserPoolCapacityReachedError, NoAvailableBrowserErr
 
 class BrowserPool:
     _pool: dict = {}
-    max_browsers: int = conf.pool_max_browsers
-    rr_current_index: int = 0
+    max_browsers: int = conf.pool_max_size
+    rr_current_index: int = 0  # Round-robin index
 
     @property
     def browsers(cls) -> list[LeasedBrowser]:

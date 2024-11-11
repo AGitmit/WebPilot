@@ -10,7 +10,7 @@ from typing import Optional
 from web_pilot.config import config as conf
 from web_pilot.logger import logger
 from web_pilot.utils.ttl_cache import TTLCache
-from web_pilot.utils.page_session import PageSession
+from web_pilot.clients.page_session import PageSession
 from web_pilot.utils.fake_ua import fake_user_agent, Platform, BrowserTypes
 
 
