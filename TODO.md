@@ -1,11 +1,11 @@
 ### 👨‍✈️ TODO
-#### Upgrades
+#### Tasks
 - **Exception handling**: move exception handling methods to app module (handle globally).
 - **Page Actions**: expand page actions exposed via REST API.
-- **Page Actions**: Fine-tuning existing methods.
-
-#### Features
-- **db** - implement a nosql db for storing session snapshots.
+- **Snapshots**: validate robust methods working as expected.
+- **Testing**: write tests.
+- **db**: implement a nosql db for storing session snapshots.
+- **scaling**: finish implementing logic for scaling browser pools (based on category).
 
 #### API
 ##### Session Control Endpoints:
