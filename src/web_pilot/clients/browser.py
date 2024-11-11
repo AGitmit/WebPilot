@@ -78,7 +78,7 @@ class LeasedBrowser:
             "userDataDir": conf.user_data_dir,
             "executablePath": conf.chromium_path,
             "args": [
-                "--host-resolver-rules=MAP localhost 127.0.0.1",
+                f"--host-resolver-rules=MAP localhost {conf.host_address}",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
             ],
