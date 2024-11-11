@@ -6,6 +6,9 @@
 - **Testing**: write tests.
 - **db**: implement a nosql db for storing session snapshots.
 - **scaling**: finish implementing logic for scaling browser pools (based on category).
+- **Browser route**: add ability to request new session on specific browser (not from pool)
+- **Page functionality**: add ability to set Geo-location on page session.
+
 
 #### API
 ##### Session Control Endpoints:
