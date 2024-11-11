@@ -1,4 +1,4 @@
-### 👨‍✈️ WebPilot - TODO
+### 🌐🕹️ WebPilot - TODO
 #### Tasks
 - **Exception handling**: move exception handling methods to app module (handle globally).
 - **Page Actions**: expand page actions exposed via REST API.
