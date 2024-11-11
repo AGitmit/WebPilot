@@ -26,7 +26,6 @@ class LeasedBrowser:
         self,
         id_: uuid.UUID,
         headless: bool = True,
-        auto_close: bool = False,
         incognito: bool = False,
         gpu: bool = False,
         privacy: bool = False,
@@ -41,7 +40,6 @@ class LeasedBrowser:
         self.pages = TTLCache()
         self.config = self._load_browser_config(
             headless,
-            auto_close,
             incognito,
             gpu,
             privacy,
@@ -65,7 +63,6 @@ class LeasedBrowser:
     def _load_browser_config(
         self,
         headless: bool,
-        auto_close: bool,
         incognito: bool,
         disable_gpu: bool,
         privacy: bool,
@@ -77,7 +74,7 @@ class LeasedBrowser:
     ) -> dict:
         config = {
             "headless": True if headless else False,
-            "autoClose": True if auto_close else False,
+            "autoClose": False,
             "userDataDir": conf.user_data_dir,
             "executablePath": conf.chromium_path,
             "args": [

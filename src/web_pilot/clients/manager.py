@@ -8,11 +8,10 @@ from web_pilot.clients.browser import LeasedBrowser
 from web_pilot.exc import BrowserPoolCapacityReachedError, NoAvailableBrowserError
 
 
-class BrowserManager:
+class BrowserPool:
     _pool: dict = {}
-    max_browsers: int = conf.max_browsers_cap
+    max_browsers: int = conf.pool_max_browsers
     rr_current_index: int = 0
-    auto_scale_browsers: bool = conf.auto_scale
 
     @property
     def browsers(cls) -> list[LeasedBrowser]:
@@ -67,8 +66,7 @@ class BrowserManager:
         # TODO: implement optional wait logic
         raise NoAvailableBrowserError("All browsers are currently at capacity.")
 
-    @classmethod
-    def scale_up(cls):
-        if cls.auto_scale_browsers:
-            if len(cls._pool) < cls.max_browsers:
-                return cls.create_new_browser()
+    # @classmethod
+    # def scale_up(cls):
+    #     if len(cls._pool) < cls.max_browsers:
+    #         return cls.create_new_browser()

@@ -26,8 +26,7 @@ class BaseConfig(BaseSettings):
     auto_scale: bool = (
         True  # This ignores which browser is used and evenly splits the load between all browsers
     )
-    balance_load: bool = True
-    max_browsers_cap: int = 1
+    pool_max_browsers: int = 1
     max_cached_items: int = 100  # max pages cached in memory
     browser_config_file: str = f"{root_folder}/default_browser_config.json"
     user_data_dir: str = f"{root_folder}/user_data"
