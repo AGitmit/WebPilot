@@ -18,10 +18,8 @@ class LeasedBrowser:
     id_: uuid.UUID
     _browser: pyppeteer.browser.Browser
     pages: cachetools.TTLCache
-    cat: str
-
-    def __repr__(self) -> str:
-        return f"Browser(id={self.id_}, page_count={self.page_count()}, cat={self.cat})"
+    platform: Platform
+    browser_type: BrowserTypes
 
     @pyd.validate_arguments
     def __init__(
@@ -37,7 +35,6 @@ class LeasedBrowser:
         proxy_server: Optional[str] = None,
         platform: Optional[Platform] = Platform.LINUX64,
         browser: Optional[BrowserTypes] = BrowserTypes.FIREFOX,
-        cat: Optional[str] = None,
     ) -> None:
         "Create Browser instance"
         self.id_ = id_
@@ -54,8 +51,16 @@ class LeasedBrowser:
             platform,
             browser,
         )
-        self.cat = cat
+        self.platform = platform
+        self.browser_type = browser
         asyncio.get_event_loop().run_until_complete(self._instantiate_browser())
+
+    @property
+    def id(self) -> uuid.UUID:
+        return self.id_
+
+    def __repr__(self) -> str:
+        return f"Browser(id={self.id_.__str__()}, page_count={self.page_count()}, platform={self.platform.value}, browser={self.browser_type.value})"
 
     def _load_browser_config(
         self,
