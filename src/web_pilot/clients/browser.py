@@ -121,27 +121,25 @@ class LeasedBrowser:
     async def start_remote_page_session(self) -> uuid.UUID:
         "Created new page and store it in cache by it's session-ID"
         session_id = uuid.uuid4().__str__()
-        new_page = PageSession(page=await self._browser.newPage(), parent=self.id_)
-        self.pages[session_id] = new_page
+        new_page_session = PageSession(page=await self._browser.newPage(), parent=self.id_)
+        self.pages[session_id] = new_page_session
         logger.bind(browser_id=self.id_).info(
             f"Created new page session: '{session_id}' successfully"
         )
         return session_id
 
-    async def retrieve_page_session(self, session_id: uuid.UUID) -> pyppeteer.page.Page:
+    async def retrieve_page_session(self, session_id: uuid.UUID) -> PageSession:
         "Retrieves a page-session from cache memory"
-        page: pyppeteer.page.Page = self._browser.pages.pop(session_id)
-        if not page:
-            raise KeyError(
-                f"Page not found [page: '{session_id}'] - session has already been closed!"
-            )
-        return page
+        page_session: PageSession = self._browser.pages.pop(session_id)
+        if page_session:
+            return page_session
+        raise KeyError(f"Page not found [page: '{session_id}'] - session has already been closed!")
 
     async def close_page_session(self, session_id: uuid.UUID) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
-        page = await self.retrieve_page_session(session_id)
+        page_session = await self.retrieve_page_session(session_id)
         try:
-            await page.close()
+            await page_session.page.close()
         except Exception as e:
             logger.bind(browser_id=self.id_, session_id=session_id).error(e)
             raise
