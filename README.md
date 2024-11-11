@@ -1,2 +1,2 @@
 # 🌐🕹️ WebPilot   
-#### "Controlling the web - redefined!"
+#### "Controlling the web - Redefined!"
