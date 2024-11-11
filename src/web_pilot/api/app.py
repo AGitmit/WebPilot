@@ -7,7 +7,7 @@ from web_pilot.utils.headless import HeadlessUtil
 
 
 app = FastAPI(
-    title="👨‍✈️ WebPilot API",
+    title="🌐🕹️ WebPilot API",
     version=conf.app_version,
     description="Controlling the web - redefined!",
     openapi_url=f"{conf.v1_url_prefix}/openapi.json",
