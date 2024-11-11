@@ -33,7 +33,7 @@ _ua = UserAgent()
 def fake_user_agent(
     type: Optional[BrowserTypes] = None,
 ) -> str:
-    """Returns a random string of a browser's user-agent; You can ask for a specific type of browser or completely random."""
+    "Returns a random string for a browser's user-agent"
     match type:
         case BrowserTypes.CHROME:
             return _ua.googlechrome
