@@ -22,18 +22,20 @@ class BaseConfig(BaseSettings):
     export_logs: bool = False
     log_file_location: str = root_folder
 
-    # browser config
-    auto_scale: bool = (
-        True  # This ignores which browser is used and evenly splits the load between all browsers
-    )
+    # pool admin config
+    max_pools: int = 10
+
+    # browser pool config
     pool_max_size: int = 1
     max_cached_items: int = 100  # max pages cached in memory
-    browser_config_file: str = f"{root_folder}/default_browser_config.json"
     user_data_dir: str = f"{root_folder}/user_data"
+
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
+
     # etc.
     temp_file_archive: str = f"{root_folder}/temp_archive"
+
     # caching
     cache_ttl: float = 3600  # 1 hour
     cache_provider: CacheProvider = CacheProvider.IN_MEMORY
