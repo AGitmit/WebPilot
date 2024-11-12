@@ -11,3 +11,8 @@ class NoAvailableBrowserError(BaseException):
 class UnableToPerformActionError(BaseException):
     def __init__(self, message: str):
         self.message = message
+
+
+class PoolAlreadyExistsError(BaseException):
+    def __init__(self, message: str):
+        self.message = message

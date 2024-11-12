@@ -1,15 +1,24 @@
 import uuid
 import pydantic as pyd
 
+from hashlib import sha1
 from typing import Optional
+from web_pilot.logger import logger
+from web_pilot.clients.browser_pool import BrowserPool
+from web_pilot.exc import PoolAlreadyExistsError
 
 
 class PoolAdmin:
     _pools: dict = {}
+    _deletion_candidates: list[uuid.UUID] = []
+
+    @classmethod
+    def list_pools(cls) -> list[BrowserPool]:
+        return list(cls._pools.values())
 
     @classmethod
     @pyd.validate_arguments
-    def get_pool(cls, pool_id: uuid.UUID) -> Optional[dict]:
+    def get_pool(cls, pool_id: str) -> Optional[BrowserPool]:
         "Get pool by its ID"
         return cls._pools.get(pool_id)
 
@@ -21,18 +30,39 @@ class PoolAdmin:
 
     @classmethod
     @pyd.validate_arguments
-    def delete_pool(cls, pool_id: uuid.UUID, force: bool = False) -> bool:
+    def delete_pool(cls, pool_id: str, force: bool = False) -> bool:
         "Remove pool by its ID"
         if pool_id not in cls._pools:
             return False
-        # TODO: implement optional wait logic (if pool is not empty and 'force' is False)
-        del cls._pools[pool_id]
+
+        if force:
+            del cls._pools[pool_id]
+        else:
+            cls._deletion_candidates.append(pool_id)
         return True
 
     @classmethod
     @pyd.validate_arguments
-    def create_new_pool(cls) -> uuid.UUID:
+    def remove_deletion_candidates(cls) -> None:
+        # have this an intervaled task in the background (maybe app level)
+        for p_idx, pool_id in enumerate(cls._deletion_candidates):
+            if pool_id not in cls._pools or cls._pools[pool_id].is_busy():
+                logger.bind(pool_id=pool_id).info(
+                    "Is candidate for deletion, but is currently busy - skipping deletion"
+                )
+                continue
+            del cls._pools[pool_id]
+            cls._deletion_candidates.pop(p_idx)
+            logger.bind(pool_id=pool_id).info("Pool deleted successfully")
+
+    @classmethod
+    @pyd.validate_arguments
+    def create_new_pool(cls, config: dict = {}) -> uuid.UUID:
         "Create new pool instance, return it's ID for reference"
-        pool_id = uuid.uuid4().__str__()
-        cls._pools[pool_id] = {}
+        pool_id = sha1(str(config).encode()).hexdigest()
+        if pool_id in cls._pools:
+            raise PoolAlreadyExistsError(
+                f"A pool with these configuration already exists - pool_id:'{pool_id}'"
+            )
+        cls._pools[pool_id] = BrowserPool(pool_id, config)
         return pool_id

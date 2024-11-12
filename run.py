@@ -12,5 +12,4 @@ if __name__ == "__main__":
         reload=conf.reload_app,
         workers=conf.workers_count,
         loop="uvloop",
-        log_level=conf.log_level,
     )

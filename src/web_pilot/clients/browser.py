@@ -20,11 +20,13 @@ class LeasedBrowser:
     pages: TTLCache
     platform: Platform
     browser_type: BrowserTypes
+    _parent: str
 
     @pyd.validate_arguments
     def __init__(
         self,
         id_: uuid.UUID,
+        parent: str,
         headless: bool = True,
         incognito: bool = False,
         gpu: bool = False,
@@ -32,11 +34,12 @@ class LeasedBrowser:
         ignore_http_errors: bool = True,
         spa_mode: bool = False,
         proxy_server: Optional[str] = None,
-        platform: Optional[Platform] = Platform.LINUX64,
-        browser: Optional[BrowserTypes] = BrowserTypes.FIREFOX,
+        platform: Optional[Platform] = None,
+        browser: Optional[BrowserTypes] = None,
     ) -> None:
         "Create Browser instance"
         self.id_ = id_
+        self._parent = parent
         self.pages = TTLCache()
         self.config = self._load_browser_config(
             headless,
@@ -144,4 +147,4 @@ class LeasedBrowser:
             logger.bind(browser_id=self.id_, session_id=session_id).info(
                 "Page session closed successfully"
             )
-            del self.pages.delete_item(session_id)
+            self.pages.delete_item(session_id)

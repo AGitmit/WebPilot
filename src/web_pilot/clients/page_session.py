@@ -9,13 +9,17 @@ from web_pilot.schemas.pages import Snapshot, PageContent
 
 
 class PageSession:
+    page: pyppeteer.page.Page
+    session_id: uuid.UUID
+    parent: uuid.UUID
+
     def __init__(self, page: pyppeteer.page.Page, **kwargs) -> None:
         self.page = page
-        self.session_id: uuid.UUID = uuid.uuid4()
-        self.parent: int = kwargs.get("parent", None)
+        self.session_id = uuid.uuid4()
+        self.parent = kwargs.get("parent", None)
 
     def __repr__(self) -> str:
-        return f"Page(id={self.session_id.__str__()}, parent={self.parent})"
+        return f"Page(id={self.session_id.__str__()}, parent={self.parent.__str__()})"
 
     @property
     def page(self) -> pyppeteer.page.Page:
@@ -82,6 +86,15 @@ class PageSession:
             await asyncio.sleep(interval / 1000)
             elapsed += interval
         raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
+
+    # async def usage_metrics(self):
+    #     # gather and view usage of resources for current visited host
+    #     # Create a single CDP session
+    #     cdp_client = await self.page.target.createCDPSession()
+    #     metrics = await cdp_client.send("Performance.getMetrics")
+    #     storage = await cdp_client.send("Storage.getUsageAndQuota", {
+    #     "origin": self.page.url
+    #     })
 
     # @pyd.validate_arguments
     # @log_execution_metrics
