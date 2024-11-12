@@ -1,4 +1,3 @@
-import pyppeteer
 import uuid
 import pydantic as pyd
 
@@ -23,6 +22,14 @@ class BrowserPool:
         self._max_browsers = conf.pool_max_size
         self._rr_current_index = 0  # Round-robin index
 
+    @property
+    def id(self) -> str:
+        return self.id_
+
+    @id.setter
+    def id(self, value: str) -> None:
+        self.id_ = value
+
     def __repr__(self) -> str:
         return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count() for browser in self._pool.values()])})"
 
@@ -37,7 +44,7 @@ class BrowserPool:
     @pyd.validate_arguments
     def create_new_browser(self) -> str:
         "Create and return a new browser instance"
-        browser_id = uuid.uuid4().__str__()
+        browser_id = len(self._pool)
         if len(self._pool) >= self._max_browsers:
             raise BrowserPoolCapacityReachedError(
                 f"Max number of browsers in pool reached: {self._max_browsers}"
@@ -56,16 +63,23 @@ class BrowserPool:
         return True
 
     @pyd.validate_arguments
-    def get_browser_by_id(self, browser_id: uuid.UUID) -> Optional[pyppeteer.browser.Browser]:
+    def get_browser_by_id(self, browser_id: int) -> Optional[LeasedBrowser]:
         "Get browser by its ID"
         return self._pool.get(browser_id)
 
-    async def get_next_browser(self) -> pyppeteer.browser.Browser:
+    async def get_next_browser(self) -> LeasedBrowser:
         """
         Get the next available browser in the pool - round-robin.
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
         This method is used if `balance_load` is set to `True`.
         """
+        if len(self.browsers) == 0:
+            self.create_new_browser()
+            return self._pool[0]
+
+        elif len(self.browsers) == 1:
+            return self._pool[0]
+
         for _ in range(len(self.browsers)):
             browser: LeasedBrowser = self.browsers[self._rr_current_index]
             # Check if browser has capacity for more pages

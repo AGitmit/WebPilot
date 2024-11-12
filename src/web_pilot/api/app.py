@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from web_pilot.api.routes import router as IndexRouter
 from web_pilot.api.routes.browser_pool import router as BrowserPoolRouter
+from web_pilot.api.routes.sessions import router as SessionsRouter
 from web_pilot.config import config as conf
 from web_pilot.utils.headless import HeadlessUtil
 
@@ -18,6 +19,7 @@ app = FastAPI(
 for router in [
     IndexRouter,
     BrowserPoolRouter,
+    SessionsRouter,
 ]:
     app.include_router(router)
 

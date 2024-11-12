@@ -2,53 +2,55 @@ import uuid
 import asyncio
 
 from fastapi import APIRouter, status, HTTPException
+from fastapi.responses import JSONResponse
+from web_pilot.clients.pools_admin import PoolAdmin
 from web_pilot.config import config as conf
-from web_pilot.clients.controller import BrowserController
 from web_pilot.schemas.requests import PageActionRequest
 from web_pilot.schemas.responses import PageContentResponse
 from web_pilot.logger import logger
+from web_pilot.exc import PageSessionNotFoundError
 
 
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/sessions", tags=["Page Sessions"])
 
 
 @router.get(
-    "/sessions/open",
+    "/sessions/new",
     status_code=status.HTTP_201_CREATED,
-    description="Start a new, in-memory, remote page session",
+    description="Start a new, in-memory, remote, page session",
 )
-async def start_page_session():
+async def start_page_session(pool_id: str) -> str:
     try:
-        session_id = uuid.uuid4()
-        return await asyncio.wait_for(
-            BrowserController.start_page_session(session_id), timeout=conf.default_timeout
-        )
+        pool = PoolAdmin.get_pool(pool_id)
+        if not pool:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
-    except asyncio.TimeoutError as e:
-        msg = "Request has been timed-out!"
-        logger.error(msg)
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
+        browser = await pool.get_next_browser()
+        session_id = await browser.start_remote_page_session(
+            session_id_prefix=f"{pool.id}_{browser.id}"
+        )
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={"session_id": session_id},
+        )
 
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
-@router.get("/sessions/close/{session_id}", status_code=status.HTTP_200_OK)
-async def close_page_session(session_id: uuid.UUID):
+@router.patch("/sessions/{session_id}/close", status_code=status.HTTP_204_NO_CONTENT)
+async def close_page_session(session_id: str) -> None:
     try:
-        return await asyncio.wait_for(
-            BrowserController.remove_cached_page(session_id), timeout=conf.default_timeout
-        )
+        _, browser, page_session = PoolAdmin.get_session_owners_chain(session_id)
+        await browser.close_page_session(page_session.id)
+
+    except PageSessionNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
     except KeyError as e:
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
-
-    except asyncio.TimeoutError as e:
-        msg = "Request has been timed-out!"
-        logger.error(msg)
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
 
     except Exception as e:
         logger.error(e)
@@ -56,14 +58,14 @@ async def close_page_session(session_id: uuid.UUID):
 
 
 @router.post(
-    "/sessions/page/action/{session_id}",
+    "/sessions/{session_id}/action",
     response_model=PageContentResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
 )
-async def perform_action_on_page(session_id: uuid.UUID, args: PageActionRequest):
-    async def action_on_page(session_id: uuid.UUID, args: PageActionRequest):
-        page = await BrowserController.retrieve_cached_page(session_id)
-        return await BrowserController.page_action(page, **args.dict())
+async def perform_action_on_page(session_id: str, args: PageActionRequest):
+    async def action_on_page(session_id: str, args: PageActionRequest):
+        _, _, page = PoolAdmin.get_session_owners_chain(session_id)
+        return await page.perform_page_action(**args.dict())
 
     try:
         return await asyncio.wait_for(

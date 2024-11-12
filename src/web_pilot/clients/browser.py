@@ -12,10 +12,11 @@ from web_pilot.logger import logger
 from web_pilot.utils.ttl_cache import TTLCache
 from web_pilot.clients.page_session import PageSession
 from web_pilot.utils.fake_ua import fake_user_agent, Platform, BrowserTypes
+from web_pilot.exc import FailedToLaunchBrowser
 
 
 class LeasedBrowser:
-    id_: uuid.UUID
+    id_: str
     _browser: pyppeteer.browser.Browser
     pages: TTLCache
     platform: Platform
@@ -25,7 +26,7 @@ class LeasedBrowser:
     @pyd.validate_arguments
     def __init__(
         self,
-        id_: uuid.UUID,
+        id_: str,
         parent: str,
         headless: bool = True,
         incognito: bool = False,
@@ -39,6 +40,7 @@ class LeasedBrowser:
     ) -> None:
         "Create Browser instance"
         self.id_ = id_
+        self._browser = None
         self._parent = parent
         self.pages = TTLCache()
         self.config = self._load_browser_config(
@@ -54,14 +56,13 @@ class LeasedBrowser:
         )
         self.platform = platform
         self.browser_type = browser
-        asyncio.get_event_loop().run_until_complete(self._instantiate_browser())
 
     @property
-    def id(self) -> uuid.UUID:
+    def id(self) -> str:
         return self.id_
 
     def __repr__(self) -> str:
-        return f"Browser(id={self.id_.__str__()}, page_count={self.page_count()}, platform={self.platform.value}, browser={self.browser_type.value})"
+        return f"Browser(id={self.id_}, page_count={self.page_count()}, platform={self.platform.value}, browser={self.browser_type.value})"
 
     def _load_browser_config(
         self,
@@ -110,41 +111,50 @@ class LeasedBrowser:
 
     async def _instantiate_browser(self) -> None:
         "Create Pyppeteer browser instance"
-        self._browser = await pyppeteer.launch(**self.config)
+        try:
+            self._browser = await pyppeteer.launch(**self.config)
+
+        except pyppeteer.errors.PuppeteerError as e:
+            logger.bind(browser_id=self.id_).error(f"Failed to launch browser: {e}", exc_info=True)
+            raise FailedToLaunchBrowser(e)
 
     def page_count(self) -> int:
-        return self.pages.len()
+        return len(self.pages)
 
     async def close(self) -> None:
         await self._browser.close()
 
-    async def start_remote_page_session(self) -> uuid.UUID:
+    async def start_remote_page_session(self, session_id_prefix: str) -> str:
         "Created new page and store it in cache by it's session-ID"
-        session_id = uuid.uuid4().__str__()
-        new_page_session = PageSession(page=await self._browser.newPage(), parent=self.id_)
-        self.pages.set_item(session_id, new_page_session)
+        if not self._browser:
+            await self._instantiate_browser()
+
+        page_id = len(self.pages)
+        new_page_session = PageSession(await self._browser.newPage(), page_id)
+        self.pages.set_item(page_id, new_page_session)
+        session_id = f"{session_id_prefix}_{str(page_id)}"
         logger.bind(browser_id=self.id_).info(
             f"Created new page session: '{session_id}' successfully"
         )
         return session_id
 
-    def retrieve_page_session(self, session_id: uuid.UUID) -> PageSession:
+    def retrieve_page_session(self, page_id: int) -> PageSession:
         "Retrieves a page-session from cache memory"
-        page_session: PageSession = self.pages.get_item(session_id)
+        page_session: PageSession = self.pages.get_item(page_id)
         if page_session:
             return page_session
-        raise KeyError(f"Page not found [page: '{session_id}'] - session has already been closed!")
+        raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
 
-    async def close_page_session(self, session_id: uuid.UUID) -> None:
+    async def close_page_session(self, page_id: int) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
-        page_session = self.retrieve_page_session(session_id)
+        page_session = self.retrieve_page_session(page_id)
         try:
             await page_session.page.close()
         except Exception as e:
-            logger.bind(browser_id=self.id_, session_id=session_id).error(e)
+            logger.bind(browser_id=self.id_, session_id=page_id).error(e)
             raise
         finally:
-            logger.bind(browser_id=self.id_, session_id=session_id).info(
+            logger.bind(browser_id=self.id_, session_id=page_id).info(
                 "Page session closed successfully"
             )
-            self.pages.delete_item(session_id)
+            self.pages.delete_item(page_id)

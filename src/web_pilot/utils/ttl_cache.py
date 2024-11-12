@@ -11,15 +11,13 @@ class TTLCache:
         self._cache = self._init_cache(max_items=conf.max_cached_items, ttl=conf.cache_ttl)
 
     def _init_cache(self, max_items: int = None, ttl: int = None) -> Union[cachetools.TTLCache]:
-        if self._provider is None:
-            match conf.cache_provider:
-                case CacheProvider.IN_MEMORY:
-                    self._provider = cachetools.TTLCache(maxsize=max_items, ttl=ttl)
-                case _:
-                    raise ValueError("Unknown cache provider")
-        return self._provider
+        match conf.cache_provider:
+            case CacheProvider.IN_MEMORY:
+                return cachetools.TTLCache(maxsize=max_items, ttl=ttl)
+            case _:
+                raise ValueError("Unknown cache provider")
 
-    def len(self) -> int:
+    def __len__(self) -> int:
         return len(self._cache)
 
     def get_item(self, key: str):

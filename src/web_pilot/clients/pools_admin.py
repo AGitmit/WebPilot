@@ -5,7 +5,8 @@ from hashlib import sha1
 from typing import Optional
 from web_pilot.logger import logger
 from web_pilot.clients.browser_pool import BrowserPool
-from web_pilot.exc import PoolAlreadyExistsError
+from web_pilot.exc import PoolAlreadyExistsError, PageSessionNotFoundError
+from web_pilot.clients.browser import LeasedBrowser
 
 
 class PoolAdmin:
@@ -21,6 +22,20 @@ class PoolAdmin:
     def get_pool(cls, pool_id: str) -> Optional[BrowserPool]:
         "Get pool by its ID"
         return cls._pools.get(pool_id)
+
+    @classmethod
+    @pyd.validate_arguments
+    def get_session_owners_chain(cls, session_id: str) -> Optional[LeasedBrowser]:
+        "Get session owners chain by session ID"
+        pool_id, browser_id, page_id = tuple(session_id.split("_"))
+        try:
+            pool = cls.get_pool(pool_id)
+            browser = pool.get_browser_by_id(int(browser_id))
+            page = browser.retrieve_page_session(int(page_id))
+            return pool, browser, page
+
+        except Exception:
+            raise PageSessionNotFoundError("Page session not found")
 
     # @classmethod
     # @pyd.validate_arguments

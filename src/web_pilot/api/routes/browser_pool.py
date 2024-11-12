@@ -1,6 +1,3 @@
-import asyncio
-import uuid
-
 from fastapi import APIRouter, status, HTTPException, Query
 from fastapi.responses import JSONResponse
 from web_pilot.config import config as conf
@@ -28,11 +25,6 @@ async def create_browser_pool(config: PoolAdminCreateReq):
     except BrowserPoolCapacityReachedError as e:
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
-
-    except asyncio.TimeoutError as e:
-        msg = "Request has been timed-out!"
-        logger.error(msg)
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
 
     except Exception as e:
         logger.error(e)
@@ -62,11 +54,6 @@ async def get_pool(pool_id: str):
 async def delete_pool(pool_id: str, force: bool = Query(default=False)):
     try:
         PoolAdmin.delete_pool(pool_id, force)
-
-    except asyncio.TimeoutError as e:
-        msg = "Request has been timed-out!"
-        logger.error(msg)
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
 
     except Exception as e:
         logger.error(e)
