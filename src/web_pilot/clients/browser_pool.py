@@ -62,7 +62,6 @@ class BrowserPool:
                     return await func(self, *args, **kwargs)
 
                 return async_wrapper()  # Call immediately, returns a coroutine
-
             # Otherwise, just call synchronously
             return func(self, *args, **kwargs)
 

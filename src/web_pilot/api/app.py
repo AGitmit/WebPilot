@@ -8,7 +8,12 @@ from web_pilot.config import config as conf
 from web_pilot.utils.headless import HeadlessUtil
 from web_pilot.clients.pools_admin import PoolAdmin
 from web_pilot.utils.decorators import repeat_every
-from web_pilot.exc import PoolIsInactiveError, PoolAlreadyExistsError, NoAvailableBrowserError
+from web_pilot.exc import (
+    PoolIsInactiveError,
+    PoolAlreadyExistsError,
+    NoAvailableBrowserError,
+    RateLimitsExceededError,
+)
 
 
 app = FastAPI(
@@ -54,6 +59,11 @@ async def timeout_handler(request, exc):
     raise HTTPException(
         status_code=status.HTTP_408_REQUEST_TIMEOUT, detail="Request has been timed-out!"
     )
+
+
+@app.exception_handler(RateLimitsExceededError)
+async def rate_limit_exceeded_handler(request, exc):
+    raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc))
 
 
 # Background tasks

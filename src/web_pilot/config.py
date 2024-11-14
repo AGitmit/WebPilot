@@ -12,6 +12,8 @@ class BaseConfig(BaseSettings):
     app_version: str = "0.1.0"
     v1_url_prefix: str = "/api/v1"
     root_folder: str = os.path.dirname(__file__)
+    rate_limit: int = 100  # Number of requests over rate_period
+    rate_period: int = 60  # Time period in seconds
 
     # server config
     host_address: str = "0.0.0.0"
