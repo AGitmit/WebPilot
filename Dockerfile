@@ -37,4 +37,4 @@ RUN chgrp -R www ${VIRTUAL_ENV} /app && chmod -R u+rx ${VIRTUAL_ENV} /app
 
 USER appuser
 EXPOSE 8000
-CMD ["uvicorn", "web_pilot.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3.12", "run.py"]
