@@ -16,7 +16,7 @@ def init_logger(**context):
         backtrace=True,
         diagnose=True,
     )
-    logger.configure(extra=context or {"source": "Internal"})
+    logger.configure(extra=context or {"source": "WebPilot"})
     return logger
 
 
