@@ -11,6 +11,7 @@
 - **LeasedBrowser**: implement is_busy() method to check if browser has any pages or idle.
 - **LeasedBrowser**: implement has_capacity() method to check if browser has capacity for new page.
 - **Scaling browser pools**: Implement scaling up and down + ttl on browsers to detect browsers for scale down deletion.
+- **Rate Limiting**: implement rate limiting for the app.
 
 #### API
 ##### Session Control Endpoints:
