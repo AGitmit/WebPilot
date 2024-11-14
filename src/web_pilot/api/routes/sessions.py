@@ -1,4 +1,3 @@
-import uuid
 import asyncio
 
 from fastapi import APIRouter, status, HTTPException
@@ -20,23 +19,18 @@ router = APIRouter(prefix=f"{conf.v1_url_prefix}/sessions", tags=["Page Sessions
     description="Start a new, in-memory, remote, page session",
 )
 async def start_page_session(pool_id: str) -> str:
-    try:
-        pool = PoolAdmin.get_pool(pool_id)
-        if not pool:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
+    pool = PoolAdmin.get_pool(pool_id)
+    if not pool:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
-        browser = await pool.get_next_browser()
-        session_id = await browser.start_remote_page_session(
-            session_id_prefix=f"{pool.id}_{browser.id}"
-        )
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={"session_id": session_id},
-        )
-
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    browser = await pool.get_next_browser()
+    session_id = await browser.start_remote_page_session(
+        session_id_prefix=f"{pool.id}_{browser.id}"
+    )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={"session_id": session_id},
+    )
 
 
 @router.patch("/sessions/{session_id}/close", status_code=status.HTTP_204_NO_CONTENT)
@@ -51,10 +45,6 @@ async def close_page_session(session_id: str) -> None:
     except KeyError as e:
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
-
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.post(
@@ -75,12 +65,3 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
     except KeyError as e:
         logger.error(e)
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
-
-    except asyncio.TimeoutError as e:
-        msg = "Request has been timed-out!"
-        logger.error(msg)
-        raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=msg)
-
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

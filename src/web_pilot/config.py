@@ -24,6 +24,7 @@ class BaseConfig(BaseSettings):
 
     # pool admin config
     max_pools: int = 10
+    idle_pool_deletion_interval: int = 30
 
     # browser pool config
     pool_max_size: int = 1
@@ -32,9 +33,6 @@ class BaseConfig(BaseSettings):
 
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
-
-    # etc.
-    temp_file_archive: str = f"{root_folder}/temp_archive"
 
     # caching
     cache_ttl: float = 3600  # 1 hour

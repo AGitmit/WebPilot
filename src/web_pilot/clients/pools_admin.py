@@ -54,14 +54,15 @@ class PoolAdmin:
             del cls._pools[pool_id]
         else:
             cls._deletion_candidates.append(pool_id)
+            cls._pools[pool_id].mark_as_inactive()
         return True
 
     @classmethod
     @pyd.validate_arguments
     def remove_deletion_candidates(cls) -> None:
-        # have this an intervaled task in the background (maybe app level)
+        logger.debug("Removing pools marked for deletion...")
         for p_idx, pool_id in enumerate(cls._deletion_candidates):
-            if pool_id not in cls._pools or cls._pools[pool_id].is_busy():
+            if pool_id not in cls._pools or cls._pools[pool_id].is_busy:
                 logger.bind(pool_id=pool_id).info(
                     "Is candidate for deletion, but is currently busy - skipping deletion"
                 )
