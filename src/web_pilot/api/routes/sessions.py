@@ -33,7 +33,11 @@ async def start_page_session(pool_id: str) -> str:
     )
 
 
-@router.patch("/sessions/{session_id}/close", status_code=status.HTTP_204_NO_CONTENT)
+@router.patch(
+    "/sessions/{session_id}/close",
+    status_code=status.HTTP_204_NO_CONTENT,
+    description="Close a remote page session",
+)
 async def close_page_session(session_id: str) -> None:
     try:
         _, browser, page_session = PoolAdmin.get_session_owners_chain(session_id)
@@ -50,7 +54,8 @@ async def close_page_session(session_id: str) -> None:
 @router.post(
     "/sessions/{session_id}/action",
     response_model=PageContentResponse,
-    status_code=status.HTTP_202_ACCEPTED,
+    status_code=status.HTTP_200_OK,
+    description="Perform an action on a remote page session",
 )
 async def perform_action_on_page(session_id: str, args: PageActionRequest):
     async def action_on_page(session_id: str, args: PageActionRequest):
