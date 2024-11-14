@@ -20,7 +20,7 @@ class BaseConfig(BaseSettings):
 
     # logging config
     export_logs: bool = False
-    log_file_location: str = root_folder
+    log_file_location: str = "./logs/web_pilot.log"
 
     # pool admin config
     max_pools: int = 10
@@ -29,7 +29,7 @@ class BaseConfig(BaseSettings):
     # browser pool config
     pool_max_size: int = 1
     max_cached_items: int = 100  # max pages cached in memory
-    user_data_dir: str = f"{root_folder}/user_data"
+    user_data_dir: str = f"./user_data"
 
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
