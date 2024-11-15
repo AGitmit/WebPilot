@@ -190,3 +190,34 @@ class SnapshotUtil:
 
         await page.setRequestInterception(True)
         page.on("request", handle_request)
+
+
+# @pyd.validate_arguments
+# async def save_snapshot(self) -> Snapshot:
+#     cookies = await self._page.cookies()
+#     local_storage = await self._page.evaluate(
+#         "JSON.stringify(Object.assign({}, window.localStorage))"
+#     )
+#     session_storage = await self._page.evaluate(
+#         "JSON.stringify(Object.assign({}, window.sessionStorage))"
+#     )
+#     url = self._page.url
+
+#     return Snapshot(
+#         url=url, cookies=cookies, local_storage=local_storage, session_storage=session_storage
+#     )
+
+# async def restore_from_snapshot(self, snapshot: Snapshot) -> None:
+#     # Set cookies
+#     await self._page.setCookie(*snapshot.cookies)
+
+#     # Navigate to a minimal valid page to access storage APIs
+#     await self._page.goto(f"http://{conf.host_address}:{conf.host_port}")
+
+#     # Restore local storage and session storage
+#     await self._page.evaluate(
+#         f"""
+#         Object.assign(window.localStorage, JSON.parse({json.dumps(snapshot.local_storage)}));
+#         Object.assign(window.sessionStorage, JSON.parse({json.dumps(snapshot.session_storage)}));
+#     """
+#     )
