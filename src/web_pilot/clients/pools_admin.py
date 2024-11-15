@@ -7,6 +7,7 @@ from web_pilot.logger import logger
 from web_pilot.clients.browser_pool import BrowserPool
 from web_pilot.exc import PoolAlreadyExistsError, PageSessionNotFoundError
 from web_pilot.clients.browser import LeasedBrowser
+from web_pilot.utils.sessions import break_session_id_to_parts
 
 
 class PoolAdmin:
@@ -25,9 +26,9 @@ class PoolAdmin:
 
     @classmethod
     @pyd.validate_arguments
-    def get_session_owners_chain(cls, session_id: str) -> Optional[LeasedBrowser]:
+    def get_session_parent_chain(cls, session_id: str) -> Optional[LeasedBrowser]:
         "Get session owners chain by session ID"
-        pool_id, browser_id, page_id = tuple(session_id.split("_"))
+        pool_id, browser_id, page_id = break_session_id_to_parts(session_id)
         try:
             pool = cls.get_pool(pool_id)
             browser = pool.get_browser_by_id(int(browser_id))

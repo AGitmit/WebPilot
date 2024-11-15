@@ -13,6 +13,7 @@ from web_pilot.exc import (
     PoolAlreadyExistsError,
     NoAvailableBrowserError,
     RateLimitsExceededError,
+    InvalidSessionIDError,
 )
 
 
@@ -64,6 +65,11 @@ async def timeout_handler(request, exc):
 @app.exception_handler(RateLimitsExceededError)
 async def rate_limit_exceeded_handler(request, exc):
     raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc))
+
+
+@app.exception_handler(InvalidSessionIDError)
+async def invalid_session_id_handler(request, exc):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
 
 # Background tasks

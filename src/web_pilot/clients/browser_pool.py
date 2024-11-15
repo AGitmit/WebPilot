@@ -9,8 +9,8 @@ from web_pilot.clients.browser import LeasedBrowser
 from web_pilot.exc import (
     BrowserPoolCapacityReachedError,
     NoAvailableBrowserError,
-    PoolIsInactiveError,
 )
+from web_pilot.utils.decorators import run_if_browser_accepts_new_jobs
 
 
 class BrowserPool:
@@ -49,28 +49,10 @@ class BrowserPool:
     def is_busy(self) -> bool:
         return any([browser.page_count() > 0 for browser in self._pool.values()])
 
-    def _only_if_accept_new_jobs(func) -> callable:
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if not self._accept_new_jobs:
-                raise PoolIsInactiveError("Pool is inactive")
-
-            # Check at call time whether to use async or sync execution
-            if asyncio.iscoroutinefunction(func):
-                # Use an inner async function when called in an async context
-                async def async_wrapper():
-                    return await func(self, *args, **kwargs)
-
-                return async_wrapper()  # Call immediately, returns a coroutine
-            # Otherwise, just call synchronously
-            return func(self, *args, **kwargs)
-
-        return wrapper
-
     def mark_as_inactive(self) -> None:
         self._accept_new_jobs = False
 
-    @_only_if_accept_new_jobs
+    @run_if_browser_accepts_new_jobs
     def create_new_browser(self) -> str:
         "Create and return a new browser instance"
         browser_id = len(self._pool)
@@ -82,7 +64,7 @@ class BrowserPool:
         return browser_id
 
     @pyd.validate_arguments
-    @_only_if_accept_new_jobs
+    @run_if_browser_accepts_new_jobs
     def remove_browser_by_id(self, browser_id: uuid.UUID, force: bool = False) -> bool:
         "Remove browser from pool by its ID"
         if browser_id not in self._pool or not force and self._pool[browser_id].page_count() > 0:
@@ -93,12 +75,12 @@ class BrowserPool:
         return True
 
     @pyd.validate_arguments
-    @_only_if_accept_new_jobs
+    @run_if_browser_accepts_new_jobs
     def get_browser_by_id(self, browser_id: int) -> Optional[LeasedBrowser]:
         "Get browser by its ID"
         return self._pool.get(browser_id)
 
-    @_only_if_accept_new_jobs
+    @run_if_browser_accepts_new_jobs
     async def get_next_browser(self) -> LeasedBrowser:
         """
         Get the next available browser in the pool - round-robin.

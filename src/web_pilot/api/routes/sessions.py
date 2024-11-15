@@ -43,7 +43,7 @@ async def start_page_session(pool_id: str) -> str:
 )
 async def close_page_session(session_id: str) -> None:
     try:
-        _, browser, page_session = PoolAdmin.get_session_owners_chain(session_id)
+        _, browser, page_session = PoolAdmin.get_session_parent_chain(session_id)
         await browser.close_page_session(page_session.id)
 
     except PageSessionNotFoundError:
@@ -63,7 +63,7 @@ async def close_page_session(session_id: str) -> None:
 )
 async def perform_action_on_page(session_id: str, args: PageActionRequest):
     async def action_on_page(session_id: str, args: PageActionRequest):
-        _, _, page = PoolAdmin.get_session_owners_chain(session_id)
+        _, _, page = PoolAdmin.get_session_parent_chain(session_id)
         return await page.perform_page_action(**args.dict())
 
     try:
