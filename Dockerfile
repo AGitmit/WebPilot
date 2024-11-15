@@ -1,4 +1,4 @@
-FROM python:3.12-slim as builder
+FROM python:3.12-slim
 # Install dependencies with apt (for Debian-based images)
 RUN apt-get update && apt-get install -y gcc musl-dev libffi-dev openssl \
     && rm -rf /var/lib/apt/lists/*
@@ -12,8 +12,6 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
 RUN poetry install --no-interaction --no-dev --no-ansi && rm -rf $POETRY_CACHE_DIR
-
-FROM python:3.12-slim as production
 # Install chromium and chromedriver dependencies using apt
 RUN apt-get update && apt-get install -y chromium chromium-driver \
     && rm -rf /var/lib/apt/lists/*
@@ -29,7 +27,6 @@ ENV VIRTUAL_ENV=/app/.venv \
 
 RUN addgroup --system www && adduser --system appuser --ingroup www
 
-COPY --from=builder  ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 WORKDIR /app
 COPY . .
 
