@@ -26,3 +26,4 @@ class PageActionType(Enum):
     EVALUATE_ON_NEW_DOCUMENT = "evaluateOnNewDocument"
     SET_COOKIE = "setCookie"
     DELETE_COOKIE = "deleteCookie"
+    EMULATE_MEDIA = "emulateMedia"

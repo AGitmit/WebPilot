@@ -15,7 +15,7 @@ router = APIRouter(prefix=f"{conf.v1_url_prefix}/sessions", tags=["Page Sessions
 
 
 @router.get(
-    "/sessions/new",
+    "/new",
     status_code=status.HTTP_201_CREATED,
     description="Start a new, in-memory, remote, page session",
     dependencies=[Depends(rate_limiter)],
@@ -36,7 +36,7 @@ async def start_page_session(pool_id: str) -> str:
 
 
 @router.patch(
-    "/sessions/{session_id}/close",
+    "/{session_id}/close",
     status_code=status.HTTP_204_NO_CONTENT,
     description="Close a remote page session",
     dependencies=[Depends(rate_limiter)],
@@ -55,22 +55,25 @@ async def close_page_session(session_id: str) -> None:
 
 
 @router.post(
-    "/sessions/{session_id}/action",
+    "/{session_id}/action",
     response_model=PageContentResponse,
     status_code=status.HTTP_200_OK,
     description="Perform an action on a remote page session",
     dependencies=[Depends(rate_limiter)],
 )
 async def perform_action_on_page(session_id: str, args: PageActionRequest):
-    async def action_on_page(session_id: str, args: PageActionRequest):
-        _, _, page = PoolAdmin.get_session_parent_chain(session_id)
-        return await page.perform_page_action(**args.dict())
+    with logger.contextualize(session_id=session_id, action=args.action.value):
+        # helper function
+        async def action_on_page(session_id: str, args: PageActionRequest):
+            _, _, page = PoolAdmin.get_session_parent_chain(session_id)
+            response = await page.perform_page_action(**args.dict())
+            return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
-    try:
-        return await asyncio.wait_for(
-            action_on_page(session_id, args), timeout=conf.default_timeout
-        )
+        try:
+            return await asyncio.wait_for(
+                action_on_page(session_id, args), timeout=conf.default_timeout
+            )
 
-    except KeyError as e:
-        logger.error(e)
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
+        except KeyError as e:
+            logger.error(e)
+            raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))

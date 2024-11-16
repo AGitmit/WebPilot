@@ -4,7 +4,7 @@ import pyppeteer
 from typing import Any
 from web_pilot.schemas.constants.page_action_type import PageActionType
 from web_pilot.logger import logger
-from web_pilot.utils.metrics import log_execution_metrics
+from web_pilot.utils.decorators import log_elapsed_time
 from web_pilot.exc import UnableToPerformActionError
 from web_pilot.utils.sessions import (
     perform_action_click,
@@ -29,13 +29,13 @@ from web_pilot.utils.sessions import (
     perform_action_removeScriptTag,
     perform_action_setGeoLocation,
     perform_action_clearGeolocation,
+    perform_action_emulateMedia,
 )
 
 
 class PageSession:
     _page: pyppeteer.page.Page
     session_id: str
-    parent: str
 
     def __init__(self, page_obj: pyppeteer.page.Page, page_id: int, **kwargs) -> None:
         self._page = page_obj
@@ -61,7 +61,7 @@ class PageSession:
         self._page = page_obj
 
     @pyd.validate_arguments
-    @log_execution_metrics
+    @log_elapsed_time
     async def perform_page_action(self, action: PageActionType, **kwargs) -> Any:
         match action:
             case PageActionType.CLICK:
@@ -130,14 +130,17 @@ class PageSession:
             case PageActionType.REMOVE_COOKIE:
                 call_method = perform_action_deleteCookie
 
+            case PageActionType.EMULATE_MEDIA:
+                call_method = perform_action_emulateMedia
+
             case _:
                 raise NotImplementedError(f"Action '{action}' is not supported!")
 
         try:
-            return await call_method(self._page, **kwargs)
+            return await call_method(self.page, **kwargs)
 
         except Exception as e:
-            logger.bind(
-                browser_id=self.parent, session_id=str(self.session_id), page_action=action
-            ).error(f"Unable to perform action - {e}")
+            logger.bind(session_id=str(self.id), page_action=action).error(
+                f"Unable to perform action - {e}"
+            )
             raise UnableToPerformActionError(e)

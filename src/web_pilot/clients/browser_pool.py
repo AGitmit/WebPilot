@@ -38,8 +38,18 @@ class BrowserPool:
     def id(self, value: str) -> None:
         self.id_ = value
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count() for browser in self._pool.values()])})"
+
+    def __repr__(self) -> str:
+        return dict(
+            id=self.id_.__str__(),
+            browser_count=len(self._pool),
+            max_browsers=self._max_browsers,
+            total_pages=sum([browser.page_count() for browser in self._pool.values()]),
+            config=self.config_template,
+            accept_new_jobs=self._accept_new_jobs,
+        )
 
     @property
     def browsers(self) -> list[LeasedBrowser]:

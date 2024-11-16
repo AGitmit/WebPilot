@@ -2,11 +2,12 @@ import uuid
 import pydantic as pyd
 
 from hashlib import sha1
-from typing import Optional
+from typing import Optional, Tuple
 from web_pilot.logger import logger
 from web_pilot.clients.browser_pool import BrowserPool
 from web_pilot.exc import PoolAlreadyExistsError, PageSessionNotFoundError
 from web_pilot.clients.browser import LeasedBrowser
+from web_pilot.clients.page_session import PageSession
 from web_pilot.utils.sessions import break_session_id_to_parts
 
 
@@ -16,7 +17,7 @@ class PoolAdmin:
 
     @classmethod
     def list_pools(cls) -> list[BrowserPool]:
-        return list(cls._pools.values())
+        return [pool.__repr__() for pool in cls._pools.values()]
 
     @classmethod
     @pyd.validate_arguments
@@ -26,7 +27,9 @@ class PoolAdmin:
 
     @classmethod
     @pyd.validate_arguments
-    def get_session_parent_chain(cls, session_id: str) -> Optional[LeasedBrowser]:
+    def get_session_parent_chain(
+        cls, session_id: str
+    ) -> Optional[Tuple[BrowserPool, LeasedBrowser, PageSession]]:
         "Get session owners chain by session ID"
         pool_id, browser_id, page_id = break_session_id_to_parts(session_id)
         try:

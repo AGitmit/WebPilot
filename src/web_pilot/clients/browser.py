@@ -130,7 +130,7 @@ class LeasedBrowser:
             await self._instantiate_browser()
 
         page_id = len(self.pages)
-        new_page_session = PageSession(await self._browser.newPage(), page_id)
+        new_page_session = PageSession(page_obj=await self._browser.newPage(), page_id=page_id)
         self.pages.set_item(page_id, new_page_session)
         session_id = f"{session_id_prefix}_{str(page_id)}"
         logger.bind(browser_id=self.id_).info(

@@ -6,6 +6,30 @@ from web_pilot.logger import logger
 from web_pilot.exc import PoolIsInactiveError
 
 
+def log_elapsed_time(func):
+    async def async_wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = await func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        logger.info(f"{func.__name__} elapsed-time: {execution_time:.4f} sec.")
+        return result
+
+    @functools.wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        logger.info(f"{func.__name__} elapsed-time: {execution_time:.4f} sec.")
+        return result
+
+    if asyncio.iscoroutinefunction(func):
+        return async_wrapper
+    else:
+        return sync_wrapper
+
+
 def repeat_every(interval: int):
     def wrapper(func):
         async def async_wrapper(*args, **kwargs):

@@ -27,7 +27,7 @@ async def create_browser_pool(config: PoolAdminCreateReq):
     dependencies=[Depends(rate_limiter)],
 )
 async def list_browsers():
-    return JSONResponse(status_code=status.HTTP_200_OK, content=str(PoolAdmin.list_pools()))
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"pools": PoolAdmin.list_pools()})
 
 
 @router.get(
@@ -41,7 +41,7 @@ async def get_pool(pool_id: str):
     if not pool:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"pool": str(pool)})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"pool": pool.__repr__()})
 
 
 @router.delete(

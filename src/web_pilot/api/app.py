@@ -34,7 +34,7 @@ for router in [
     app.include_router(router)
 
 
-# Error handlers
+# Global error handlers
 @app.exception_handler(Exception)
 async def http_exception_handler(request, exc):
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
