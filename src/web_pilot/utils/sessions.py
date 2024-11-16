@@ -151,7 +151,7 @@ async def perform_action_extractPageContents(page: pyppeteer.page.Page) -> PageC
         url=page.url,
         title=await page.title(),
         content=await page.content(),
-    )
+    ).dict()
 
 
 async def perform_action_setGeoLocation(page: pyppeteer.page.Page, **kwargs) -> None:

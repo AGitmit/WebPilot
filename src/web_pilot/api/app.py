@@ -14,6 +14,7 @@ from web_pilot.exc import (
     NoAvailableBrowserError,
     RateLimitsExceededError,
     InvalidSessionIDError,
+    PageSessionNotFoundError,
 )
 
 
@@ -75,6 +76,11 @@ async def invalid_session_id_handler(request, exc):
 @app.exception_handler(ValueError)
 async def general_bad_request_handler(request, exc):
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@app.exception_handler(PageSessionNotFoundError)
+async def page_session_not_found_handler(request, exc):
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
 # Background tasks
