@@ -4,8 +4,6 @@
 - **Snapshots**: validate robust methods working as expected.
 - **Testing**: write tests.
 - **db**: implement a nosql db for storing session snapshots.
-- **LeasedBrowser**: implement is_busy() method to check if browser has any pages or idle.
-- **LeasedBrowser**: implement has_capacity() method to check if browser has capacity for new page.
 - **Scaling browser pools**: Implement scaling up and down + ttl on browsers to detect browsers for scale down deletion.
 - **Rate Limiting**: implement Redis support.
 
