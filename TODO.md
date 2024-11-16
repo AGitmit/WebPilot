@@ -7,11 +7,11 @@
 - **Scaling browser pools**: Implement scaling up and down + ttl on browsers to detect browsers for scale down deletion.
 - **Rate Limiting**: implement Redis support.
 
-#### API tasks
+#### API Functionality Road-map
 ##### Session Control Endpoints:
-- Create, retrieve, update, and delete sessions, each with its unique ID.
+- **DONE** - Create, retrieve, update, and delete sessions, each with its unique ID.
 ##### Script Execution Endpoint:
-- Accepts a script payload and executes it in the context of a specific session.
+- **DONE** - Accepts a script payload and executes it in the context of a specific session.
 ##### Session Persistence and Management:
 - Allow users to specify timeouts, enable session reuse, or clone sessions to handle multi-step workflows.
 ##### Resource and Monitoring Endpoints:
