@@ -28,6 +28,7 @@ tinydb = "^4.8.2"
 pymongo = "^4.10.1"
 fake-useragent = "^1.5.1"
 uvloop = "^0.21.0"
+redis = "^5.2.0"
 
 
 [build-system]
