@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from web_pilot.clients.pools_admin import PoolAdmin
 from web_pilot.config import config as conf
-from web_pilot.schemas.requests import PageActionRequest
+from web_pilot.schemas.requests import PageActionRequest, PageActionType
 from web_pilot.schemas.responses import PageContentResponse
 from web_pilot.logger import logger
 from web_pilot.exc import PageSessionNotFoundError
@@ -12,6 +12,19 @@ from web_pilot.utils.limiter import rate_limiter
 
 
 router = APIRouter(prefix=f"{conf.v1_url_prefix}/sessions", tags=["Page Sessions"])
+
+
+@router.get(
+    "/actions",
+    status_code=status.HTTP_200_OK,
+    description="List all supported page actions",
+    dependencies=[Depends(rate_limiter)],
+)
+async def list_supported_page_actions():
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"supported_actions": str([i.value for i in PageActionType.__members__.values()])},
+    )
 
 
 @router.get(
@@ -36,7 +49,7 @@ async def start_page_session(pool_id: str) -> str:
 
 
 @router.patch(
-    "/{session_id}/close",
+    "/close/{session_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     description="Close a remote page session",
     dependencies=[Depends(rate_limiter)],
@@ -55,7 +68,7 @@ async def close_page_session(session_id: str) -> None:
 
 
 @router.post(
-    "/{session_id}/action",
+    "/action/{session_id}",
     response_model=PageContentResponse,
     status_code=status.HTTP_200_OK,
     description="Perform an action on a remote page session",
