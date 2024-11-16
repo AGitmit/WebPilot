@@ -1,7 +1,8 @@
 import pydantic as pyd
 import pyppeteer
 
-from typing import Any
+from datetime import datetime
+from typing import Any, Optional
 from web_pilot.schemas.constants.page_action_type import PageActionType
 from web_pilot.logger import logger
 from web_pilot.utils.decorators import log_elapsed_time
@@ -35,11 +36,15 @@ from web_pilot.utils.sessions import (
 
 class PageSession:
     _page: pyppeteer.page.Page
-    session_id: str
+    id_: str
+    is_active: bool
+    last_used: Optional[datetime]
 
     def __init__(self, page_obj: pyppeteer.page.Page, page_id: int, **kwargs) -> None:
         self._page = page_obj
         self.id_ = page_id
+        self._is_active = True
+        self._last_used = None
 
     @property
     def id(self) -> int:
@@ -49,8 +54,13 @@ class PageSession:
     def id(self, page_id: int) -> None:
         self.id_ = page_id
 
-    def __repr__(self) -> str:
-        return f"Page(id={self.session_id}, parent={self.id_.split('_')[0:2]})"
+    def __repr__(self) -> dict:
+        return dict(
+            id=self.id_,
+            is_active=self._is_active,
+            last_used=self._last_used,
+            parent=self.id_.split("_")[0:2],
+        )
 
     @property
     def page(self) -> pyppeteer.page.Page:
@@ -59,6 +69,16 @@ class PageSession:
     @page.setter
     def page(self, page_obj: pyppeteer.page.Page) -> None:
         self._page = page_obj
+
+    def update_last_used(self) -> None:
+        self._last_used = datetime.now()
+
+    def set_as_idle(self) -> None:
+        "Set the page as idle if it hasn't been used in the last 3 minutes"
+        if self._last_used is None or self._last_used < (
+            datetime.now() - datetime.timedelta(seconds=180)
+        ):
+            self._is_active = False
 
     @pyd.validate_arguments
     @log_elapsed_time
@@ -144,3 +164,6 @@ class PageSession:
                 f"Unable to perform action - {e}"
             )
             raise UnableToPerformActionError(e)
+
+        finally:
+            self.update_last_used()

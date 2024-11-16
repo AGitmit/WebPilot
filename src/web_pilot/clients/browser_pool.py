@@ -1,7 +1,5 @@
 import uuid
 import pydantic as pyd
-import functools
-import asyncio
 
 from typing import Optional
 from web_pilot.config import config as conf
@@ -41,14 +39,15 @@ class BrowserPool:
     def __str__(self) -> str:
         return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count() for browser in self._pool.values()])})"
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> dict:
         return dict(
             id=self.id_.__str__(),
             browser_count=len(self._pool),
             max_browsers=self._max_browsers,
             total_pages=sum([browser.page_count() for browser in self._pool.values()]),
-            config=self.config_template,
+            is_busy=self.is_busy,
             accept_new_jobs=self._accept_new_jobs,
+            config=self.config_template,
         )
 
     @property
@@ -57,7 +56,7 @@ class BrowserPool:
 
     @property
     def is_busy(self) -> bool:
-        return any([browser.page_count() > 0 for browser in self._pool.values()])
+        return any([browser.is_busy for browser in self._pool.values()])
 
     def mark_as_inactive(self) -> None:
         self._accept_new_jobs = False
@@ -113,10 +112,14 @@ class BrowserPool:
             # Move to the next browser
             self._rr_current_index = (self._rr_current_index + 1) % len(self.browsers)
 
-        # If all browsers are full, raise an exception
-        # TODO: implement optional wait logic
-        raise NoAvailableBrowserError("All browsers are currently at capacity.")
+        # If all browsers are full, attempt to scale up else raise an exception
+        if browser := self.scale_up():
+            self._rr_current_index = (self._rr_current_index + 1) % len(self.browsers)
+            return browser
 
-    # def scale_up(cls):
-    #     if len(cls._pool) < cls.max_browsers:
-    #         return cls.create_new_browser()
+        raise NoAvailableBrowserError("All browsers are currently at full capacity!")
+
+    def scale_up(self):
+        if len(self._pool) < self._max_browsers:
+            self.create_new_browser()
+            return self._pool[-1]

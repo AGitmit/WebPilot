@@ -61,8 +61,14 @@ class LeasedBrowser:
     def id(self) -> str:
         return self.id_
 
-    def __repr__(self) -> str:
-        return f"Browser(id={self.id_}, page_count={self.page_count()}, platform={self.platform.value}, browser={self.browser_type.value})"
+    def __repr__(self) -> dict:
+        return dict(
+            id=self.id_,
+            page_count=self.page_count(),
+            platform=self.platform.value,
+            browser=self.browser_type.value,
+            is_busy=self.is_busy,
+        )
 
     def _load_browser_config(
         self,
@@ -120,6 +126,14 @@ class LeasedBrowser:
 
     def page_count(self) -> int:
         return len(self.pages)
+
+    @property
+    def is_busy(self) -> bool:
+        return any([page._is_active for page in self.pages._cache.values()])
+
+    @property
+    def has_capacity(self) -> bool:
+        return self.page_count < conf.max_cached_items
 
     async def close(self) -> None:
         await self._browser.close()
