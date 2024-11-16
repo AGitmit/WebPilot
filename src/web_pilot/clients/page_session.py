@@ -65,74 +65,76 @@ class PageSession:
     async def perform_page_action(self, action: PageActionType, **kwargs) -> Any:
         match action:
             case PageActionType.CLICK:
-                func_to_call = perform_action_click
+                call_method = perform_action_click
 
             case PageActionType.AUTHENTICATE:
-                func_to_call = perform_action_authenticate
+                call_method = perform_action_authenticate
 
             case PageActionType.SET_USER_AGENT:
-                func_to_call = perform_action_setUserAgent
+                call_method = perform_action_setUserAgent
 
             case PageActionType.SCREENSHOT:
-                func_to_call = perform_action_screenshot
+                call_method = perform_action_screenshot
 
             case PageActionType.GOTO:
-                func_to_call = perform_action_goto
+                call_method = perform_action_goto
 
             case PageActionType.GO_BACK:
-                func_to_call = perform_action_goBack
+                call_method = perform_action_goBack
 
             case PageActionType.GO_FORWARD:
-                func_to_call = perform_action_goForward
+                call_method = perform_action_goForward
 
             case PageActionType.SAVE_SNAPSHOT:
-                func_to_call = perform_action_saveSnapshot
+                call_method = perform_action_saveSnapshot
 
             case PageActionType.RESTORE_SNAPSHOT:
-                func_to_call = perform_action_restoreSnapshot
+                call_method = perform_action_restoreSnapshot
 
             case PageActionType.EVALUATE:
-                func_to_call = perform_action_evaluate
+                call_method = perform_action_evaluate
 
             case PageActionType.EXTRACT_PAGE_CONTENTS:
-                func_to_call = perform_action_extractPageContents
+                call_method = perform_action_extractPageContents
 
             case PageActionType.EXPOSE_FUNCTION:
-                func_to_call = perform_action_exposeFunction
+                call_method = perform_action_exposeFunction
 
             case PageActionType.REMOVE_FUNCTION:
-                func_to_call = perform_action_removeFunction
+                call_method = perform_action_removeFunction
 
             case PageActionType.SET_VIEWPORT:
-                func_to_call = perform_action_setViewport
+                call_method = perform_action_setViewport
 
             case PageActionType.SET_GEOLOCATION:
-                func_to_call = perform_action_setGeoLocation
+                call_method = perform_action_setGeoLocation
 
             case PageActionType.CLEAR_GEOLOCATION:
-                func_to_call = perform_action_clearGeolocation
+                call_method = perform_action_clearGeolocation
 
             case PageActionType.ADD_SCRIPT_TAG:
-                func_to_call = perform_action_addScriptTag
+                call_method = perform_action_addScriptTag
 
             case PageActionType.REMOVE_SCRIPT_TAG:
-                func_to_call = perform_action_removeScriptTag
+                call_method = perform_action_removeScriptTag
 
             case PageActionType.EVALUATE_HANDLE:
-                func_to_call = perform_action_evaluateHandle
+                call_method = perform_action_evaluateHandle
 
             case PageActionType.EVALUATE_ON_NEW_DOCUMENT:
-                func_to_call = perform_action_evaluateOnNewDocument
+                call_method = perform_action_evaluateOnNewDocument
 
             case PageActionType.SET_COOKIE:
-                func_to_call = perform_action_setCookie
+                call_method = perform_action_setCookie
 
             case PageActionType.REMOVE_COOKIE:
-                func_to_call = perform_action_deleteCookie
+                call_method = perform_action_deleteCookie
+
+            case _:
+                raise NotImplementedError(f"Action '{action}' is not supported!")
 
         try:
-            return await func_to_call(self._page, **kwargs)
-            # return await perform_action_extractPageContents(self._page)
+            return await call_method(self._page, **kwargs)
 
         except Exception as e:
             logger.bind(
