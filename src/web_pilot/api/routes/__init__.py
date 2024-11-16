@@ -8,7 +8,7 @@ router = APIRouter(prefix="")
 
 
 @router.get("/", status_code=status.HTTP_200_OK, include_in_schema=False)
-@router.get("/{conf.v1_url_prefix}", status_code=status.HTTP_200_OK, include_in_schema=False)
+@router.get(f"{conf.v1_url_prefix}", status_code=status.HTTP_200_OK, include_in_schema=False)
 async def index():
     """Returns the service's basic information."""
     return dict(
