@@ -8,6 +8,7 @@ from web_pilot.schemas.pages import Snapshot, PageContent
 from typing import Type
 
 
+# Utils
 @pyd.validate_arguments
 def break_session_id_to_parts(session_id: str) -> tuple:
     try:
@@ -18,6 +19,7 @@ def break_session_id_to_parts(session_id: str) -> tuple:
         raise InvalidSessionIDError("Invalid session ID")
 
 
+# Page actions
 @pyd.validate_arguments
 async def _wait_for_text(self, text: str, timeout: int = 30000, interval: int = 500) -> bool:
     elapsed = 0
