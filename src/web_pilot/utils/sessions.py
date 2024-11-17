@@ -19,19 +19,6 @@ def break_session_id_to_parts(session_id: str) -> tuple:
 
 
 # Page actions
-async def _wait_for_text(
-    page: pyppeteer.page.Page, text: str, timeout: int = 30000, interval: int = 500
-) -> bool:
-    elapsed = 0
-    while elapsed < timeout:
-        content = await page.content()
-        if text in content:
-            return True
-        await asyncio.sleep(interval / 1000)
-        elapsed += interval
-    raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
-
-
 async def perform_action_click(page: pyppeteer.page.Page, **kwargs) -> None:
     if selector := kwargs.pop("selector", None) is None:
         raise ValueError(f"Selector is required for 'click' action")
@@ -59,6 +46,18 @@ async def perform_action_screenshot(page: pyppeteer.page.Page, **kwargs) -> None
 
 
 async def perform_action_goto(page: pyppeteer.page.Page, **kwargs) -> None:
+    async def _wait_for_text(
+        page: pyppeteer.page.Page, text: str, timeout: int = 30000, interval: int = 500
+    ) -> bool:
+        elapsed = 0
+        while elapsed < timeout:
+            content = await page.content()
+            if text in content:
+                return True
+            await asyncio.sleep(interval / 1000)
+            elapsed += interval
+        raise asyncio.TimeoutError(f"Timeout: Could not find '{text}' in the page content.")
+
     url = kwargs.pop("url", None)
     if not url:
         raise ValueError("URL is required for 'goto' action")
@@ -66,7 +65,7 @@ async def perform_action_goto(page: pyppeteer.page.Page, **kwargs) -> None:
     options = kwargs.pop("options", None)
     await page.goto(url, options)
     if kwargs.get("waitForText"):
-        await _wait_for_text(kwargs.get("waitForText"))
+        await _wait_for_text(page, kwargs.get("waitForText"))
 
 
 async def perform_action_goBack(page: pyppeteer.page.Page, **kwargs) -> None:
