@@ -78,8 +78,9 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
     with logger.contextualize(session_id=session_id, action=args.action.value):
         # helper function
         async def action_on_page(session_id: str, args: PageActionRequest):
-            _, _, page = PoolAdmin.get_session_parent_chain(session_id)
+            _, browser, page = PoolAdmin.get_session_parent_chain(session_id)
             response = await page.perform_page_action(**args.dict())
+            browser.put_page_session_back(page.id_, page)
             return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
         try:

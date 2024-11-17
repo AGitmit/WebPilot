@@ -37,7 +37,7 @@ class BaseConfig(BaseSettings):
     chromium_path: str = Field(default_factory=executablePath)
 
     # caching
-    cache_ttl: float = 3600  # 1 hour
+    cache_ttl: float = 600  # 1 hour
     cache_provider: CacheProvider = CacheProvider.IN_MEMORY
 
     class Config:

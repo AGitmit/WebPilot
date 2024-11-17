@@ -23,6 +23,9 @@ class TTLCache:
     def get_item(self, key: str):
         return self._cache.__getitem__(key)
 
+    def pop_item(self, key: str):
+        return self._cache.pop(key)
+
     def set_item(self, key: str, value: pyd.BaseModel) -> None:
         self._cache.__setitem__(key, value)
 

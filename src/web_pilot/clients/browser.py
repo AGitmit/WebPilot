@@ -151,10 +151,14 @@ class LeasedBrowser:
 
     def retrieve_page_session(self, page_id: int) -> PageSession:
         "Retrieves a page-session from cache memory"
-        page_session: PageSession = self.pages.get_item(page_id)
+        page_session: PageSession = self.pages.pop_item(page_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
+
+    def put_page_session_back(self, page_id: int, page: PageSession) -> None:
+        "Puts a page-session back to cache memory - resetting the TTL"
+        self.pages.set_item(page_id, page)
 
     async def close_page_session(self, page_id: int) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
@@ -168,4 +172,4 @@ class LeasedBrowser:
             logger.bind(browser_id=self.id_, session_id=page_id).info(
                 "Page session closed successfully"
             )
-            self.pages.delete_item(page_id)
+            self.pages.delete_item(page_id)  # maybe uneccessary right now since we use pop_item()
