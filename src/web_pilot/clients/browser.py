@@ -57,17 +57,13 @@ class LeasedBrowser:
         self.platform = platform
         self.browser_type = browser
 
-    @property
-    def id(self) -> str:
-        return self.id_
-
     def __repr__(self) -> dict:
         return dict(
             id=self.id_,
-            page_count=self.page_count(),
+            page_count=self.page_count,
             platform=self.platform.value,
             browser=self.browser_type.value,
-            is_busy=self.is_busy,
+            is_idle=self.is_idle,
         )
 
     def _load_browser_config(
@@ -124,12 +120,13 @@ class LeasedBrowser:
             logger.bind(browser_id=self.id_).error(f"Failed to launch browser: {e}", exc_info=True)
             raise FailedToLaunchBrowser(e)
 
+    @property
     def page_count(self) -> int:
         return len(self.pages)
 
     @property
-    def is_busy(self) -> bool:
-        return any([page._is_active for page in self.pages._cache.values()])
+    def is_idle(self) -> bool:
+        return all([page.is_idle for page in self.pages._cache.values()])
 
     @property
     def has_capacity(self) -> bool:
@@ -163,7 +160,7 @@ class LeasedBrowser:
         "Closes and removes a cached page-session from memory - ending the session"
         page_session = self.retrieve_page_session(page_id)
         try:
-            await page_session.page.close()
+            await page_session._page.close()
         except Exception as e:
             logger.bind(browser_id=self.id_, session_id=page_id).error(e)
             raise

@@ -1,7 +1,7 @@
 import pydantic as pyd
 import pyppeteer
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Optional
 from web_pilot.schemas.constants.page_action_type import PageActionType
 from web_pilot.logger import logger
@@ -37,48 +37,30 @@ from web_pilot.utils.sessions import (
 class PageSession:
     _page: pyppeteer.page.Page
     id_: str
-    is_active: bool
-    last_used: Optional[datetime]
+    _last_used: Optional[datetime]
 
     def __init__(self, page_obj: pyppeteer.page.Page, page_id: int, **kwargs) -> None:
         self._page = page_obj
         self.id_ = page_id
-        self._is_active = True
-        self._last_used = None
-
-    @property
-    def id(self) -> int:
-        return self.id_
-
-    @id.setter
-    def id(self, page_id: int) -> None:
-        self.id_ = page_id
+        self._last_used = datetime.now()
 
     def __repr__(self) -> dict:
         return dict(
             id=self.id_,
-            is_active=self._is_active,
+            is_idle=self.is_idle,
             last_used=self._last_used,
             parent=self.id_.split("_")[0:2],
         )
 
-    @property
-    def page(self) -> pyppeteer.page.Page:
-        return self._page
-
-    @page.setter
-    def page(self, page_obj: pyppeteer.page.Page) -> None:
-        self._page = page_obj
-
     def update_last_used(self) -> None:
         self._last_used = datetime.now()
 
-    def set_as_idle(self) -> None:
-        "Set the page as idle if it hasn't been used in the last 3 minutes"
-        if self._last_used is None or self._last_used < (
-            datetime.now() - datetime.timedelta(seconds=180)
-        ):
-            self._is_active = False
+    @property
+    def is_idle(self) -> bool:
+        "Get page's status - idle if it hasn't been used in the last 3 minutes"
+        if self._last_used < (datetime.now() - timedelta(seconds=180)):
+            return True
+        return False
 
     @pyd.validate_arguments
     @log_elapsed_time
@@ -157,10 +139,10 @@ class PageSession:
                 raise NotImplementedError(f"Action '{action}' is not supported!")
 
         try:
-            return await call_method(self.page, **kwargs)
+            return await call_method(self._page, **kwargs)
 
         except Exception as e:
-            logger.bind(session_id=str(self.id), page_action=action).error(
+            logger.bind(session_id=str(self.id_), page_action=action).error(
                 f"Unable to perform action - {e}"
             )
             raise UnableToPerformActionError(e)

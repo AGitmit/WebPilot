@@ -66,7 +66,7 @@ class PoolAdmin:
     def remove_deletion_candidates(cls) -> None:
         logger.debug("Removing pools marked for deletion...")
         for p_idx, pool_id in enumerate(cls._deletion_candidates):
-            if pool_id not in cls._pools or cls._pools[pool_id].is_busy:
+            if pool_id not in cls._pools or not cls._pools[pool_id].is_idle:
                 logger.bind(pool_id=pool_id).info(
                     "Is candidate for deletion, but is currently busy - skipping deletion"
                 )

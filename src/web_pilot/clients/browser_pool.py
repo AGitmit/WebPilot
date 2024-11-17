@@ -9,6 +9,7 @@ from web_pilot.exc import (
     NoAvailableBrowserError,
 )
 from web_pilot.utils.decorators import run_if_browser_accepts_new_jobs
+from web_pilot.logger import logger
 
 
 class BrowserPool:
@@ -16,7 +17,7 @@ class BrowserPool:
     config_template: dict
     _pool: dict[uuid.UUID, LeasedBrowser]
     _max_browsers: int
-    _rr_current_index: int
+    _least_busy_browser_idx: int
     _accept_new_jobs: bool
 
     @pyd.validate_arguments
@@ -25,27 +26,19 @@ class BrowserPool:
         self.config_template = config  # used as a template to instantiate new browsers in the pool
         self._pool = {}
         self._max_browsers = conf.pool_max_size
-        self._rr_current_index = 0  # Round-robin index
+        self._least_busy_browser_idx = 0  # Round-robin index
         self._accept_new_jobs = True
 
-    @property
-    def id(self) -> str:
-        return self.id_
-
-    @id.setter
-    def id(self, value: str) -> None:
-        self.id_ = value
-
     def __str__(self) -> str:
-        return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count() for browser in self._pool.values()])})"
+        return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count for browser in self._pool.values()])})"
 
     def __repr__(self) -> dict:
         return dict(
             id=self.id_.__str__(),
             browser_count=len(self._pool),
             max_browsers=self._max_browsers,
-            total_pages=sum([browser.page_count() for browser in self._pool.values()]),
-            is_busy=self.is_busy,
+            total_pages=sum([browser.page_count for browser in self._pool.values()]),
+            is_idle=self.is_idle,
             accept_new_jobs=self._accept_new_jobs,
             config=self.config_template,
         )
@@ -55,28 +48,29 @@ class BrowserPool:
         return list(self._pool.values())
 
     @property
-    def is_busy(self) -> bool:
-        return any([browser.is_busy for browser in self._pool.values()])
+    def is_idle(self) -> bool:
+        return all([browser.is_idle for browser in self._pool.values()])
 
     def mark_as_inactive(self) -> None:
         self._accept_new_jobs = False
 
     @run_if_browser_accepts_new_jobs
-    def create_new_browser(self) -> str:
+    def create_new_browser(self) -> LeasedBrowser:
         "Create and return a new browser instance"
         browser_id = len(self._pool)
         if len(self._pool) >= self._max_browsers:
             raise BrowserPoolCapacityReachedError(
                 f"Max number of browsers in pool reached: {self._max_browsers}"
             )
-        self._pool[browser_id] = LeasedBrowser(browser_id, parent=self.id_, **self.config_template)
-        return browser_id
+        new_browser = LeasedBrowser(browser_id, parent=self.id_, **self.config_template)
+        self._pool[browser_id] = new_browser
+        return new_browser
 
     @pyd.validate_arguments
     @run_if_browser_accepts_new_jobs
     def remove_browser_by_id(self, browser_id: uuid.UUID, force: bool = False) -> bool:
         "Remove browser from pool by its ID"
-        if browser_id not in self._pool or not force and self._pool[browser_id].page_count() > 0:
+        if browser_id not in self._pool or not force and self._pool[browser_id].page_count > 0:
             return False
 
         self._pool[browser_id].browser.close()
@@ -90,36 +84,45 @@ class BrowserPool:
         return self._pool.get(browser_id)
 
     @run_if_browser_accepts_new_jobs
-    async def get_next_browser(self) -> LeasedBrowser:
+    async def get_least_busy_browser(self) -> LeasedBrowser:
         """
-        Get the next available browser in the pool - round-robin.
+        Get the next available browser in the pool.
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
-        This method is used if `balance_load` is set to `True`.
         """
         if len(self.browsers) == 0:
-            self.create_new_browser()
-            return self._pool[0]
+            return self.create_new_browser()
 
         elif len(self.browsers) == 1:
             return self._pool[0]
 
-        for _ in range(len(self.browsers)):
-            browser: LeasedBrowser = self.browsers[self._rr_current_index]
-            # Check if browser has capacity for more pages
-            if browser.page_count < conf.max_cached_items:
-                self._rr_current_index = (self._rr_current_index + 1) % len(self.browsers)
-                return browser
-            # Move to the next browser
-            self._rr_current_index = (self._rr_current_index + 1) % len(self.browsers)
+        least_busy_browser_idx = 0
+        for idx, browser in enumerate(self.browsers):
+            if (
+                not browser.is_idle
+                and browser.page_count > 0
+                and browser.page_count < self.browsers[least_busy_browser_idx].page_count
+            ):
+                least_busy_browser_idx = idx
 
-        # If all browsers are full, attempt to scale up else raise an exception
-        if browser := self.scale_up():
-            self._rr_current_index = (self._rr_current_index + 1) % len(self.browsers)
+        if browser := self.browsers[least_busy_browser_idx].has_capacity:
+            self._least_busy_browser_idx = least_busy_browser_idx
             return browser
 
-        raise NoAvailableBrowserError("All browsers are currently at full capacity!")
+        # If all browsers are full, attempt to scale up else raise an exception
+        if new_browser := self.scale_up():
+            self._least_busy_browser_idx = (self._least_busy_browser_idx + 1) % len(self.browsers)
+            return new_browser
 
-    def scale_up(self):
-        if len(self._pool) < self._max_browsers:
-            self.create_new_browser()
-            return self._pool[-1]
+        raise NoAvailableBrowserError(
+            "All browsers are currently at full capacity! try again later."
+        )
+
+    def scale_up(self) -> Optional[LeasedBrowser]:
+        try:
+            return self.create_new_browser()
+        except BrowserPoolCapacityReachedError as e:
+            logger.bind(pool_id=self.id_, action="scale_up").info(e)
+            return None
+
+    def scale_down(self) -> None:
+        ...
