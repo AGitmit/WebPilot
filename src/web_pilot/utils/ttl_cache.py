@@ -15,7 +15,7 @@ class TTLCache:
             case CacheProvider.IN_MEMORY:
                 return cachetools.TTLCache(maxsize=max_items, ttl=ttl)
             case _:
-                raise ValueError("Unknown cache provider")
+                raise ValueError("Unsupported cache provider")
 
     def __len__(self) -> int:
         return len(self._cache)
