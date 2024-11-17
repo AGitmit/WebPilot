@@ -18,7 +18,7 @@ class BrowserPool:
     _pool: dict[uuid.UUID, LeasedBrowser]
     _max_browsers: int
     _least_busy_browser_idx: int
-    _accept_new_jobs: bool
+    _accepts_new_jobs: bool
 
     @pyd.validate_arguments
     def __init__(self, pool_id: str, config: dict) -> None:
@@ -27,7 +27,7 @@ class BrowserPool:
         self._pool = {}
         self._max_browsers = conf.pool_max_size
         self._least_busy_browser_idx = 0  # Round-robin index
-        self._accept_new_jobs = True
+        self._accepts_new_jobs = True
 
     def __str__(self) -> str:
         return f"BrowserPool(id={self.id_.__str__()}, browser_count={len(self._pool)}, max_browsers={self._max_browsers}, total_pages={sum([browser.page_count for browser in self._pool.values()])})"
@@ -39,7 +39,7 @@ class BrowserPool:
             max_browsers=self._max_browsers,
             total_pages=sum([browser.page_count for browser in self._pool.values()]),
             is_idle=self.is_idle,
-            accept_new_jobs=self._accept_new_jobs,
+            accepts_new_jobs=self._accepts_new_jobs,
             config=self.config_template,
         )
 
@@ -52,7 +52,7 @@ class BrowserPool:
         return all([browser.is_idle for browser in self._pool.values()])
 
     def mark_as_inactive(self) -> None:
-        self._accept_new_jobs = False
+        self._accepts_new_jobs = False
 
     @run_if_browser_accepts_new_jobs
     def create_new_browser(self) -> LeasedBrowser:

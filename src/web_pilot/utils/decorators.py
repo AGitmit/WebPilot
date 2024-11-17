@@ -60,7 +60,7 @@ def repeat_every(interval: int):
 def run_if_browser_accepts_new_jobs(func) -> callable:
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
-        if not self._accept_new_jobs:
+        if not self._accepts_new_jobs:
             raise PoolIsInactiveError("Pool is inactive")
 
         # Check at call time whether to use async or sync execution
