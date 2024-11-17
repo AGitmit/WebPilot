@@ -31,7 +31,7 @@ class BaseConfig(BaseSettings):
     # browser pool config
     pool_max_size: int = 1
     max_cached_items: int = 100  # max pages cached in memory
-    user_data_dir: str = f"./user_data"
+    user_data_dir: str = "./user_data"
 
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
