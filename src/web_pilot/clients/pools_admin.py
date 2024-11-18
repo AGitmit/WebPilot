@@ -86,3 +86,9 @@ class PoolAdmin:
             )
         cls._pools[pool_id] = BrowserPool(pool_id, config)
         return pool_id
+
+    @classmethod
+    def manage_pools_scaling(cls) -> None:
+        for _, pool in cls._pools.items():
+            pool.scale_up()
+            pool.scale_down()

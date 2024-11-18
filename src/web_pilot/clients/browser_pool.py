@@ -140,7 +140,8 @@ class BrowserPool:
             candidates_for_deletion = [
                 browser for browser in self.browsers if browser.page_count == 0 or browser.is_idle
             ]
-            [self.remove_browser_by_id(candidate.id_) for candidate in candidates_for_deletion]
-            logger.bind(pool_id=self.id_, action="scale_down").info(
-                f"Scaled down to {len(self.browsers)} browsers!"
-            )
+            if len(candidates_for_deletion) > 0:
+                [self.remove_browser_by_id(candidate.id_) for candidate in candidates_for_deletion]
+                logger.bind(pool_id=self.id_, action="scale_down").info(
+                    f"Scaled down to {len(self.browsers)} browsers!"
+                )
