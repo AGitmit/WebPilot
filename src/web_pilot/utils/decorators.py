@@ -57,7 +57,7 @@ def repeat_every(interval: int):
     return wrapper
 
 
-def run_if_browser_accepts_new_jobs(func) -> callable:
+def run_if_pool_accepts_new_jobs(func) -> callable:
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         if not self._accepts_new_jobs:

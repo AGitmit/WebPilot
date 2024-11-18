@@ -1,7 +1,5 @@
-import cachetools
 import pyppeteer
-import asyncio
-import uuid
+import psutil
 import pydantic as pyd
 import pyppeteer.browser
 import pyppeteer.launcher
@@ -123,6 +121,25 @@ class LeasedBrowser:
     @property
     def page_count(self) -> int:
         return len(self.pages)
+
+    @property
+    def pid(self) -> int:
+        process = self._browser.process
+        return process.pid
+
+    @property
+    def monitor_browser(self) -> tuple[float, float]:
+        """Monitor the resource usage of a browser process."""
+        try:
+            process = psutil.Process(self.pid)
+            cpu_usage = (
+                process.cpu_percent(interval=0.1) / psutil.cpu_count()
+            )  # CPU usage of the process
+            memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory in MB
+            return cpu_usage, memory_usage
+
+        except psutil.NoSuchProcess:
+            return 0, 0
 
     @property
     def is_idle(self) -> bool:
