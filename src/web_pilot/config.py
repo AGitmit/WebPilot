@@ -27,6 +27,7 @@ class BaseConfig(BaseSettings):
     # pool admin config
     max_pools: int = 10
     idle_pool_deletion_interval: int = 30
+    pools_scaling_check_interval: int = 60
 
     # browser pool config
     pool_max_size: int = 1

@@ -15,6 +15,7 @@ from web_pilot.exc import (
     RateLimitsExceededError,
     InvalidSessionIDError,
     PageSessionNotFoundError,
+    BrowserPoolCapacityReachedError,
 )
 
 
@@ -83,6 +84,11 @@ async def page_session_not_found_handler(request, exc):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
+@app.exception_handler(BrowserPoolCapacityReachedError)
+async def page_session_not_found_handler(request, exc):
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
+
 # Background tasks
 @app.on_event("startup")
 async def check_chromium():
@@ -94,6 +100,12 @@ async def delete_unused_pools():
     PoolAdmin.remove_deletion_candidates()
 
 
+@repeat_every(interval=conf.pools_scaling_check_interval)
+async def manage_pools_scaling():
+    await PoolAdmin.manage_pools_scaling()
+
+
 @app.on_event("startup")
 async def register_background_tasks():
     asyncio.create_task(delete_unused_pools())
+    asyncio.create_task(manage_pools_scaling())
