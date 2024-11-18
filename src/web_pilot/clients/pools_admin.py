@@ -35,7 +35,7 @@ class PoolAdmin:
         try:
             pool = cls.get_pool(pool_id)
             browser = pool.get_browser_by_id(int(browser_id))
-            page = browser.retrieve_page_session(int(page_id))
+            page = browser.get_page_session(int(page_id))
             return pool, browser, page
 
         except Exception:

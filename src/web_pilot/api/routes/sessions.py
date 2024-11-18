@@ -39,9 +39,7 @@ async def start_page_session(pool_id: str) -> str:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
     browser = await pool.get_least_busy_browser()
-    session_id = await browser.start_remote_page_session(
-        session_id_prefix=f"{pool.id_}_{browser.id_}"
-    )
+    session_id = await browser.start_page_session(session_id_prefix=f"{pool.id_}_{browser.id_}")
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content={"session_id": session_id},
@@ -80,7 +78,7 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
         async def action_on_page(session_id: str, args: PageActionRequest):
             _, browser, page = PoolAdmin.get_session_parent_chain(session_id)
             response = await page.perform_page_action(**args.dict())
-            browser.put_page_session_back(page.id_, page)
+            browser.put_page_session(page.id_, page)
             return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
         try:

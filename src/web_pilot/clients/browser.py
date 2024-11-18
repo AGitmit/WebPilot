@@ -135,7 +135,7 @@ class LeasedBrowser:
     async def close(self) -> None:
         await self._browser.close()
 
-    async def start_remote_page_session(self, session_id_prefix: str) -> str:
+    async def start_page_session(self, session_id_prefix: str) -> str:
         "Created new page and store it in cache by it's session-ID"
         if not self._browser:
             await self._instantiate_browser()
@@ -149,20 +149,20 @@ class LeasedBrowser:
         )
         return session_id
 
-    def retrieve_page_session(self, page_id: int) -> PageSession:
+    def get_page_session(self, page_id: int) -> PageSession:
         "Retrieves a page-session from cache memory"
         page_session: PageSession = self.pages.pop_item(page_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
 
-    def put_page_session_back(self, page_id: int, page: PageSession) -> None:
+    def put_page_session(self, page_id: int, page: PageSession) -> None:
         "Puts a page-session back to cache memory - resetting the TTL"
         self.pages.set_item(page_id, page)
 
     async def close_page_session(self, page_id: int) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
-        page_session = self.retrieve_page_session(page_id)
+        page_session = self.get_page_session(page_id)
         try:
             await page_session._page.close()
         except Exception as e:
