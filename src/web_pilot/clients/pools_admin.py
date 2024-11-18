@@ -88,7 +88,9 @@ class PoolAdmin:
         return pool_id
 
     @classmethod
-    def manage_pools_scaling(cls) -> None:
+    async def manage_pools_scaling(cls) -> None:
+        "Scale-up and scale-down pools"
+        logger.debug("Checking Scaling conditions for pools...")
         for _, pool in cls._pools.items():
             pool.scale_up()
-            pool.scale_down()
+            await pool.scale_down()
