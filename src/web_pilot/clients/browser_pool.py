@@ -17,7 +17,6 @@ class BrowserPool:
     config_template: dict
     _pool: dict[uuid.UUID, LeasedBrowser]
     _max_browsers: int
-    _least_busy_browser_idx: int
     _accepts_new_jobs: bool
 
     @pyd.validate_arguments
@@ -26,7 +25,6 @@ class BrowserPool:
         self.config_template = config  # used as a template to instantiate new browsers in the pool
         self._pool = {}
         self._max_browsers = conf.pool_max_size
-        self._least_busy_browser_idx = 0  # Round-robin index
         self._accepts_new_jobs = True
 
     def __str__(self) -> str:
@@ -68,13 +66,14 @@ class BrowserPool:
 
     @pyd.validate_arguments
     @run_if_browser_accepts_new_jobs
-    def remove_browser_by_id(self, browser_id: uuid.UUID, force: bool = False) -> bool:
+    def remove_browser_by_id(self, browser_id: str, force: bool = False) -> bool:
         "Remove browser from pool by its ID"
         if browser_id not in self._pool or not force and self._pool[browser_id].page_count > 0:
             return False
 
         self._pool[browser_id].browser.close()
         del self._pool[browser_id]
+        logger.bind(pool_id=self.id_).info(f"Browser-{browser_id} has been removed from the pool")
         return True
 
     @pyd.validate_arguments
@@ -84,7 +83,7 @@ class BrowserPool:
         return self._pool.get(browser_id)
 
     @run_if_browser_accepts_new_jobs
-    async def get_least_busy_browser(self) -> LeasedBrowser:
+    def get_least_busy_browser(self) -> LeasedBrowser:
         """
         Get the next available browser in the pool.
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
@@ -105,24 +104,43 @@ class BrowserPool:
                 least_busy_browser_idx = idx
 
         if browser := self.browsers[least_busy_browser_idx].has_capacity:
-            self._least_busy_browser_idx = least_busy_browser_idx
             return browser
-
-        # If all browsers are full, attempt to scale up else raise an exception
-        if new_browser := self.scale_up():
-            self._least_busy_browser_idx = (self._least_busy_browser_idx + 1) % len(self.browsers)
-            return new_browser
 
         raise NoAvailableBrowserError(
             "All browsers are currently at full capacity! try again later."
         )
 
     def scale_up(self) -> Optional[LeasedBrowser]:
-        try:
-            return self.create_new_browser()
-        except BrowserPoolCapacityReachedError as e:
-            logger.bind(pool_id=self.id_, action="scale_up").info(e)
-            return None
+        "Scale up the pool by creating a new browser instance"
+        # Check if the total number of pages across all browsers is greater than 50% of current capacity
+        total_page_cap = conf.max_cached_items * len(self.browsers)
+        total_active_pages = sum([browser.page_count for browser in self._pool.values()])
+        avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
+            self.browsers
+        )
+        if total_active_pages >= (total_page_cap * 0.6) or avg_cpu_usage >= 0.7:
+            try:
+                self.create_new_browser()
+                logger.bind(pool_id=self.id_, action="scale_up").info(
+                    f"Scaled up to {len(self.browsers)} browsers!"
+                )
+
+            except BrowserPoolCapacityReachedError as e:
+                logger.bind(pool_id=self.id_, action="scale_up").warning(f"Scaling up failed: {e}")
 
     def scale_down(self) -> None:
-        ...
+        "Scale down the pool by removing the least busy browser instance"
+        # Check if the total number of pages across all browsers is less than 25% of current capacity
+        total_page_cap = conf.max_cached_items * len(self.browsers)
+        total_active_pages = sum([browser.page_count for browser in self._pool.values()])
+        avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
+            self.browsers
+        )
+        if total_active_pages <= (total_page_cap * 0.3) or avg_cpu_usage <= 0.3:
+            candidates_for_deletion = [
+                browser for browser in self.browsers if browser.page_count == 0 or browser.is_idle
+            ]
+            [self.remove_browser_by_id(candidate.id_) for candidate in candidates_for_deletion]
+            logger.bind(pool_id=self.id_, action="scale_down").info(
+                f"Scaled down to {len(self.browsers)} browsers!"
+            )

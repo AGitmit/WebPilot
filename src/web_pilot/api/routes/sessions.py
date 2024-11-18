@@ -38,7 +38,7 @@ async def start_page_session(pool_id: str) -> str:
     if not pool:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
-    browser = await pool.get_least_busy_browser()
+    browser = pool.get_least_busy_browser()
     session_id = await browser.start_page_session(session_id_prefix=f"{pool.id_}_{browser.id_}")
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
