@@ -4,7 +4,6 @@
 - **Snapshots**: validate robust methods working as expected.
 - **Testing**: write tests.
 - **db**: implement a nosql db for storing session snapshots.
-- **Scaling browser pools**: Implement scaling up and down + ttl on browsers to detect browsers for scale down deletion.
 - **Rate Limiting**: implement Redis support.
 
 #### API Functionality Road-map
