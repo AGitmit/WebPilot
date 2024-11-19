@@ -1,11 +1,11 @@
 ### 🌐🕹️ WebPilot - TODO
 #### Feature/Functional Tasks
-- **Page Actions**: make pydantic validate each of the allowed action's args instread of simply allowing **kwargs.
 - **Snapshots**: validate robust methods working as expected.
+    - **db**: implement a nosql db for storing session snapshots.
 - **Testing**: write tests.
-- **db**: implement a nosql db for storing session snapshots.
-- **Rate Limiting**: implement Redis support.
+- **Rate Limiting - Redis**: implement Redis support.
 - **Page Session Cloning**: implement the ability to clone an existing session and return its session_id.
+
 
 #### API Functionality Road-map
 ##### Session Control Endpoints:
@@ -16,3 +16,7 @@
 - Allow users to specify timeouts, enable session reuse, or clone sessions to handle multi-step workflows.
 ##### Resource and Monitoring Endpoints:
 - **DONE** - Provide insights on session resource usage and active browser instances.
+
+
+#### Known issues
+- **Dockerfile**: builds ok - doesn't run (cannot find 'uvicorn')
