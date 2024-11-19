@@ -38,7 +38,7 @@ async def start_page_session(pool_id: str) -> str:
     if not pool:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pool not found")
 
-    browser = pool.get_least_busy_browser()
+    browser = pool.get_least_busy_browser(create_if_none=True)
     session_id = await browser.start_page_session(session_id_prefix=f"{pool.id_}_{browser.id_}")
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
@@ -104,3 +104,18 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
         except KeyError as e:
             logger.error(e)
             raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
+
+
+@router.get("/clone/{session_id}", status_code=status.HTTP_201_CREATED)
+async def clone_page_session(session_id: str):
+    try:
+        _, browser, page_session = PoolAdmin.get_session_parent_chain(session_id, peek=True)
+        response = await page_session.get_page_metrics()
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+
+    except PageSessionNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    except KeyError as e:
+        logger.error(e)
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))

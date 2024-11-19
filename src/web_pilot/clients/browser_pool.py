@@ -3,13 +3,14 @@ import pydantic as pyd
 
 from typing import Optional
 from web_pilot.config import config as conf
-from web_pilot.clients.browser import LeasedBrowser
+from web_pilot.clients.leased_browser import LeasedBrowser
 from web_pilot.exc import (
     BrowserPoolCapacityReachedError,
     NoAvailableBrowserError,
 )
 from web_pilot.utils.decorators import run_if_pool_accepts_new_jobs
 from web_pilot.logger import logger
+from web_pilot.utils.sessions import generate_id
 
 
 class BrowserPool:
@@ -55,19 +56,19 @@ class BrowserPool:
     @run_if_pool_accepts_new_jobs
     def create_new_browser(self) -> LeasedBrowser:
         "Create and return a new browser instance"
-        browser_id = len(self._pool)
+        browser_id = generate_id()
         if len(self._pool) >= self._max_browsers:
             raise BrowserPoolCapacityReachedError(
                 f"Max number of browsers in pool reached: {self._max_browsers}"
             )
         new_browser = LeasedBrowser(browser_id, parent=self.id_, **self.config_template)
         self._pool[browser_id] = new_browser
-        logger.bind(pool_id=self.id_).info(f"Browser {browser_id} has been added to the pool")
+        logger.bind(pool_id=self.id_).info(f"Browser '{browser_id}' has been added to the pool")
         return new_browser
 
     @pyd.validate_arguments
     @run_if_pool_accepts_new_jobs
-    async def remove_browser_by_id(self, browser_id: int, force: bool = False) -> bool:
+    async def remove_browser_by_id(self, browser_id: str, force: bool = False) -> bool:
         "Remove browser from pool by its ID"
         if browser_id not in self._pool or not force and self._pool[browser_id].page_count > 0:
             return False
@@ -76,26 +77,28 @@ class BrowserPool:
         if browser and browser._browser:
             await browser.close()
         del self._pool[browser_id]
-        logger.bind(pool_id=self.id_).info(f"Browser {browser_id} has been removed from the pool")
+        logger.bind(pool_id=self.id_).info(f"Browser '{browser_id}' has been removed from the pool")
         return True
 
     @pyd.validate_arguments
     @run_if_pool_accepts_new_jobs
-    def get_browser_by_id(self, browser_id: int) -> Optional[LeasedBrowser]:
+    def get_browser_by_id(self, browser_id: str) -> Optional[LeasedBrowser]:
         "Get browser by its ID"
         return self._pool.get(browser_id)
 
     @run_if_pool_accepts_new_jobs
-    def get_least_busy_browser(self) -> LeasedBrowser:
+    def get_least_busy_browser(self, create_if_none: bool) -> Optional[LeasedBrowser]:
         """
         Get the next available browser in the pool.
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
         """
         if len(self.browsers) == 0:
-            return self.create_new_browser()
+            if create_if_none:
+                return self.create_new_browser()
+            return None
 
         elif len(self.browsers) == 1:
-            return self._pool[0]
+            return self._pool.popitem()[1]
 
         least_busy_browser_idx = 0
         for idx, browser in enumerate(self.browsers):

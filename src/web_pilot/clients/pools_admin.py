@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from web_pilot.logger import logger
 from web_pilot.clients.browser_pool import BrowserPool
 from web_pilot.exc import PoolAlreadyExistsError, PageSessionNotFoundError
-from web_pilot.clients.browser import LeasedBrowser
+from web_pilot.clients.leased_browser import LeasedBrowser
 from web_pilot.clients.page_session import PageSession
 from web_pilot.utils.sessions import break_session_id_to_parts
 
@@ -34,12 +34,8 @@ class PoolAdmin:
         pool_id, browser_id, page_id = break_session_id_to_parts(session_id)
         try:
             pool = cls.get_pool(pool_id)
-            browser = pool.get_browser_by_id(int(browser_id))
-            page = (
-                browser.get_page_session(int(page_id))
-                if peek
-                else browser.pop_page_session(int(page_id))
-            )
+            browser = pool.get_browser_by_id(browser_id)
+            page = browser.get_page_session(page_id) if peek else browser.pop_page_session(page_id)
             return pool, browser, page
 
         except Exception:
