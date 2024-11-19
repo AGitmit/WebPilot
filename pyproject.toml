@@ -23,6 +23,7 @@ fake-useragent = "^1.5.1"
 uvloop = "^0.21.0"
 redis = "^5.2.0"
 psutil = "^6.1.0"
+nanoid = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.2"

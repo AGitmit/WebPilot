@@ -3,6 +3,7 @@ import psutil
 import pydantic as pyd
 import pyppeteer.browser
 import pyppeteer.launcher
+import nanoid
 
 from typing import Optional
 from web_pilot.config import config as conf
@@ -11,6 +12,7 @@ from web_pilot.utils.ttl_cache import TTLCache
 from web_pilot.clients.page_session import PageSession
 from web_pilot.utils.fake_ua import fake_user_agent, Platform, BrowserTypes
 from web_pilot.exc import FailedToLaunchBrowser
+from web_pilot.utils.sessions import generate_id
 
 
 class LeasedBrowser:
@@ -157,7 +159,7 @@ class LeasedBrowser:
         if not self._browser:
             await self._instantiate_browser()
 
-        page_id = len(self.pages)
+        page_id = generate_id()
         new_page_session = PageSession(page_obj=await self._browser.newPage(), page_id=page_id)
         self.pages.set_item(page_id, new_page_session)
         session_id = f"{session_id_prefix}_{str(page_id)}"
@@ -166,25 +168,40 @@ class LeasedBrowser:
         )
         return session_id
 
-    def pop_page_session(self, page_id: int) -> PageSession:
+    async def clone_page_session(self, page_id: str) -> str:
+        "Clones an existing page and store it in cache by it's own session-ID"
+        # TODO: need some refactoring with the id's and also implement clone() method on page
+        page_session = self.get_page_session(page_id)
+        clone_page_id = generate_id()
+        new_page_session = PageSession(
+            page_obj=await page_session._page.clone(), page_id=clone_page_id
+        )
+        self.pages.set_item(clone_page_id, new_page_session)
+        session_id = f"{page_session.id_}_{str(clone_page_id)}"
+        logger.bind(browser_id=self.id_).info(
+            f"Created new page session: '{session_id}' successfully"
+        )
+        return session_id
+
+    def pop_page_session(self, page_id: str) -> PageSession:
         "Retrieves a page-session from cache memory"
         page_session: PageSession = self.pages.pop_item(page_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
 
-    def get_page_session(self, page_id: int) -> PageSession:
+    def get_page_session(self, page_id: str) -> PageSession:
         "Retrieves a page-session from cache memory"
         page_session: PageSession = self.pages.get_item(page_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
 
-    def put_page_session(self, page_id: int, page: PageSession) -> None:
+    def put_page_session(self, page_id: str, page: PageSession) -> None:
         "Puts a page-session back to cache memory - resetting the TTL"
         self.pages.set_item(page_id, page)
 
-    async def close_page_session(self, page_id: int) -> None:
+    async def close_page_session(self, page_id: str) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
         page_session = self.pop_page_session(page_id)
         try:

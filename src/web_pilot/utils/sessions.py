@@ -1,6 +1,7 @@
 import pydantic as pyd
 import pyppeteer
 import asyncio
+import nanoid
 
 from web_pilot.exc import InvalidSessionIDError
 from web_pilot.utils.snapshot_util import SnapshotUtil
@@ -16,6 +17,10 @@ def break_session_id_to_parts(session_id: str) -> tuple:
 
     except ValueError:
         raise InvalidSessionIDError("Invalid session ID")
+
+
+def generate_id(len_=6) -> str:
+    return nanoid.generate("0123456789abcdefghijklmnopqrstuvwxyz", len_)
 
 
 # Page actions
