@@ -73,7 +73,7 @@ class PageSession:
         load_time = await self._page.evaluate(
             """() => performance.timing.loadEventEnd - performance.timing.navigationStart"""
         )
-        viewport = await self._page.viewport()
+        viewport = self._page.viewport
         metrics = await self._page.metrics()
 
         return {

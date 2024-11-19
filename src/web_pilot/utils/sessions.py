@@ -173,13 +173,13 @@ async def perform_action_setContent(page: pyppeteer.page.Page, **kwargs) -> None
     await page.setContent(content)
 
 
-async def perform_action_start_js_coverage(page: pyppeteer.page.Page) -> None:
+async def perform_action_startJSCoverage(page: pyppeteer.page.Page) -> None:
     await page.coverage.startJSCoverage()
 
 
-async def perform_action_stop_js_coverage(page: pyppeteer.page.Page) -> list[dict]:
+async def perform_action_stopJSCoverage(page: pyppeteer.page.Page) -> list[dict]:
     return await page.coverage.stopJSCoverage()
 
 
-async def perform_action_get_accessibility_tree(page: pyppeteer.page.Page) -> dict:
+async def perform_action_getAccessibilityTree(page: pyppeteer.page.Page) -> dict:
     return await page.accessibility.snapshot()

@@ -166,9 +166,16 @@ class LeasedBrowser:
         )
         return session_id
 
-    def get_page_session(self, page_id: int) -> PageSession:
+    def pop_page_session(self, page_id: int) -> PageSession:
         "Retrieves a page-session from cache memory"
         page_session: PageSession = self.pages.pop_item(page_id)
+        if page_session:
+            return page_session
+        raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
+
+    def get_page_session(self, page_id: int) -> PageSession:
+        "Retrieves a page-session from cache memory"
+        page_session: PageSession = self.pages.get_item(page_id)
         if page_session:
             return page_session
         raise KeyError(f"Page not found [page: '{page_id}'] - session has already been closed!")
@@ -179,7 +186,7 @@ class LeasedBrowser:
 
     async def close_page_session(self, page_id: int) -> None:
         "Closes and removes a cached page-session from memory - ending the session"
-        page_session = self.get_page_session(page_id)
+        page_session = self.pop_page_session(page_id)
         try:
             await page_session._page.close()
         except Exception as e:
