@@ -72,7 +72,7 @@ async def manual_scale_up(pool_id: str):
 @router.patch(
     "/{pool_id}/scale-down",
     status_code=status.HTTP_200_OK,
-    description="Manually scale-down a browser-pool by its ID (removes the least busy browser)",
+    description="Manually scale-down a browser-pool by its ID (forcefully terminates the least busy browser)",
     dependencies=[Depends(rate_limiter)],
 )
 async def manual_scale_down(pool_id: str):
