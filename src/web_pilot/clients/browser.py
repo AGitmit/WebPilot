@@ -147,7 +147,7 @@ class LeasedBrowser:
 
     @property
     def has_capacity(self) -> bool:
-        return self.page_count < conf.max_cached_items
+        return self.page_count < conf.browser_max_cached_items
 
     async def close(self) -> None:
         await self._browser.close()

@@ -24,7 +24,7 @@ class BrowserPool:
         self.id_ = pool_id
         self.config_template = config  # used as a template to instantiate new browsers in the pool
         self._pool = {}
-        self._max_browsers = conf.pool_max_size
+        self._max_browsers = conf.browser_pool_max_size
         self._accepts_new_jobs = True
 
     def __str__(self) -> str:
@@ -116,7 +116,7 @@ class BrowserPool:
     def auto_scale_up(self) -> Optional[LeasedBrowser]:
         "Scale up the pool by creating a new browser instance"
         # Check if the total number of pages across all browsers is greater than 50% of current capacity
-        total_page_cap = conf.max_cached_items * len(self.browsers)
+        total_page_cap = conf.browser_max_cached_items * len(self.browsers)
         total_active_pages = sum([browser.page_count for browser in self._pool.values()])
         avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
             self.browsers
@@ -134,7 +134,7 @@ class BrowserPool:
     async def auto_scale_down(self) -> None:
         "Scale down the pool by removing the least busy browser instance"
         # Check if the total number of pages across all browsers is less than 25% of current capacity
-        total_page_cap = conf.max_cached_items * len(self.browsers)
+        total_page_cap = conf.browser_max_cached_items * len(self.browsers)
         total_active_pages = sum([browser.page_count for browser in self._pool.values()])
         avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
             self.browsers

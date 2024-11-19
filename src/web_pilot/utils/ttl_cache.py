@@ -8,7 +8,7 @@ from web_pilot.config import config as conf
 
 class TTLCache:
     def __init__(self) -> None:
-        self._cache = self._init_cache(max_items=conf.max_cached_items, ttl=conf.cache_ttl)
+        self._cache = self._init_cache(max_items=conf.browser_max_cached_items, ttl=conf.cache_ttl)
 
     def _init_cache(self, max_items: int = None, ttl: int = None) -> Union[cachetools.TTLCache]:
         match conf.cache_provider:

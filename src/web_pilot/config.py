@@ -30,8 +30,8 @@ class BaseConfig(BaseSettings):
     pools_scaling_check_interval: int = 60
 
     # browser pool config
-    pool_max_size: int = 1
-    max_cached_items: int = 100  # max pages cached in memory
+    browser_pool_max_size: int = 1
+    browser_max_cached_items: int = 100  # max pages cached in memory
     user_data_dir: str = "./user_data"
 
     # Chromium
