@@ -5,6 +5,7 @@
 - **Testing**: write tests.
 - **db**: implement a nosql db for storing session snapshots.
 - **Rate Limiting**: implement Redis support.
+- **Page Session Cloning**: implement the ability to clone an existing session and return its session_id.
 
 #### API Functionality Road-map
 ##### Session Control Endpoints:
