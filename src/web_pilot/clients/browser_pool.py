@@ -113,7 +113,7 @@ class BrowserPool:
             "All browsers are currently at full capacity! try again later."
         )
 
-    def scale_up(self) -> Optional[LeasedBrowser]:
+    def auto_scale_up(self) -> Optional[LeasedBrowser]:
         "Scale up the pool by creating a new browser instance"
         # Check if the total number of pages across all browsers is greater than 50% of current capacity
         total_page_cap = conf.max_cached_items * len(self.browsers)
@@ -131,7 +131,7 @@ class BrowserPool:
             except BrowserPoolCapacityReachedError as e:
                 logger.bind(pool_id=self.id_, action="scale_up").warning(f"Scaling up failed: {e}")
 
-    async def scale_down(self) -> None:
+    async def auto_scale_down(self) -> None:
         "Scale down the pool by removing the least busy browser instance"
         # Check if the total number of pages across all browsers is less than 25% of current capacity
         total_page_cap = conf.max_cached_items * len(self.browsers)
