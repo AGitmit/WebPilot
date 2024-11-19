@@ -27,3 +27,8 @@ class PageActionType(Enum):
     SET_COOKIE = "setCookie"
     DELETE_COOKIE = "deleteCookie"
     EMULATE_MEDIA = "emulateMedia"
+    START_JS_COVERAGE = "startJSCoverage"
+    STOP_JS_COVERAGE = "stopJSCoverage"
+    GET_PAGE_METRICS = "getPageMetrics"
+    GET_ACCESSIBILITY_TREE = "getAccessibilityTree"
+    SET_CONTENT = "setContent"

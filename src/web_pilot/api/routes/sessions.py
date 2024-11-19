@@ -46,6 +46,21 @@ async def start_page_session(pool_id: str) -> str:
     )
 
 
+@router.get("/{session_id}", status_code=status.HTTP_200_OK)
+async def get_page_session_metrics(session_id: str):
+    try:
+        _, _, page_session = PoolAdmin.get_session_parent_chain(session_id, peek=True)
+        response = await page_session.get_page_metrics()
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+
+    except PageSessionNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    except KeyError as e:
+        logger.error(e)
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
+
+
 @router.patch(
     "/close/{session_id}",
     status_code=status.HTTP_204_NO_CONTENT,

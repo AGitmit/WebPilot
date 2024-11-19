@@ -28,14 +28,18 @@ class PoolAdmin:
     @classmethod
     @pyd.validate_arguments
     def get_session_parent_chain(
-        cls, session_id: str
+        cls, session_id: str, peek: bool = False
     ) -> Optional[Tuple[BrowserPool, LeasedBrowser, PageSession]]:
         "Get session owners chain by session ID"
         pool_id, browser_id, page_id = break_session_id_to_parts(session_id)
         try:
             pool = cls.get_pool(pool_id)
             browser = pool.get_browser_by_id(int(browser_id))
-            page = browser.get_page_session(int(page_id))
+            page = (
+                browser.get_page_session(int(page_id))
+                if peek
+                else browser.pop_page_session(int(page_id))
+            )
             return pool, browser, page
 
         except Exception:
@@ -92,5 +96,5 @@ class PoolAdmin:
         "Scale-up and scale-down pools"
         logger.debug("Checking Scaling conditions for pools...")
         for _, pool in cls._pools.items():
-            pool.scale_up()
-            await pool.scale_down()
+            pool.auto_scale_up()
+            await pool.auto_scale_down()
