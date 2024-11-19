@@ -166,3 +166,20 @@ async def perform_action_clearGeolocation(page: pyppeteer.page.Page) -> None:
 async def perform_action_emulateMedia(page: pyppeteer.page.Page, **kwargs) -> None:
     media_type = kwargs.pop("mediaType")  # Literal["screen", "print", "none"]
     await page.emulateMedia(media_type)
+
+
+async def perform_action_setContent(page: pyppeteer.page.Page, **kwargs) -> None:
+    content = kwargs.pop("content")
+    await page.setContent(content)
+
+
+async def perform_action_start_js_coverage(page: pyppeteer.page.Page) -> None:
+    await page.coverage.startJSCoverage()
+
+
+async def perform_action_stop_js_coverage(page: pyppeteer.page.Page) -> list[dict]:
+    return await page.coverage.stopJSCoverage()
+
+
+async def perform_action_get_accessibility_tree(page: pyppeteer.page.Page) -> dict:
+    return await page.accessibility.snapshot()

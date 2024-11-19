@@ -31,6 +31,10 @@ from web_pilot.utils.sessions import (
     perform_action_setGeoLocation,
     perform_action_clearGeolocation,
     perform_action_emulateMedia,
+    perform_action_getAccessibilityTree,
+    perform_action_setContent,
+    perform_action_startJSCoverage,
+    perform_action_stopJSCoverage,
 )
 
 
@@ -61,6 +65,25 @@ class PageSession:
         if self._last_used < (datetime.now() - timedelta(seconds=180)):
             return True
         return False
+
+    async def get_page_metrics(self) -> dict:
+        dom_size = await self._page.evaluate("document.getElementsByTagName('*').length")
+        navigation_timing = await self._page.evaluate("JSON.stringify(window.performance.timing)")
+        resource_perf = await self._page.evaluate("JSON.stringify(window.performance.getEntries())")
+        load_time = await self._page.evaluate(
+            """() => performance.timing.loadEventEnd - performance.timing.navigationStart"""
+        )
+        viewport = await self._page.viewport()
+        metrics = await self._page.metrics()
+
+        return {
+            "dom_size": dom_size,
+            "navigation_timing": navigation_timing,
+            "resource_perf": resource_perf,
+            "load_time": load_time,
+            "viewport": viewport,
+            "metrics": metrics,
+        }
 
     @pyd.validate_arguments
     @log_elapsed_time
@@ -134,6 +157,21 @@ class PageSession:
 
             case PageActionType.EMULATE_MEDIA:
                 call_method = perform_action_emulateMedia
+
+            case PageActionType.START_JS_COVERAGE:
+                call_method = perform_action_startJSCoverage
+
+            case PageActionType.STOP_JS_COVERAGE:
+                call_method = perform_action_stopJSCoverage
+
+            case PageActionType.GET_PAGE_METRICS:
+                call_method = self.get_page_metrics
+
+            case PageActionType.GET_ACCESSIBILITY_TREE:
+                call_method = perform_action_getAccessibilityTree
+
+            case PageActionType.SET_CONTENT:
+                call_method = perform_action_setContent
 
             case _:
                 raise NotImplementedError(f"Action '{action}' is not supported!")
