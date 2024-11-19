@@ -14,4 +14,4 @@
 ##### Session Persistence and Management:
 - Allow users to specify timeouts, enable session reuse, or clone sessions to handle multi-step workflows.
 ##### Resource and Monitoring Endpoints:
-- Provide insights on session resource usage, active users, and active browser instances.
+- **DONE** - Provide insights on session resource usage and active browser instances.
