@@ -27,6 +27,16 @@ The browser pool dynamically manages the lifecycle of headless browser instances
 - Configuration templates: Allows custom configurations for each instance.
 - Efficient resource allocation: Ensures each browser instance operates within capacity to prevent performance degradation.
 
+### **Page Session**
+The Page Session is a critical component of WebPilot, designed to encapsulate the lifecycle of individual web pages within a browser instance.
+It provides a robust mechanism for managing page-specific tasks, ensuring isolation, stability, and seamless interaction with the browser.
+- Task Isolation: Each page session operates independently, ensuring that tasks on one page do not interfere with others within the same browser instance.
+- In-Memory Operations: All interactions and operations on a page session occur in memory, enhancing speed and reducing latency.
+- Efficient Cleanup: Page sessions are cleaned up automatically after completion, freeing resources and preventing memory leaks.
+- Error Handling: Isolates errors to individual page sessions, preventing a single failure from impacting other pages or browser instances.
+- Monitoring and Metrics: Track performance metrics at the page level, such as load times, memory usage, and the number of active connections.
+- Concurrency: Supports multiple concurrent page sessions per browser, with intelligent load balancing to optimize performance without overwhelming the instance.
+
 ### **Performance Metrics**
 Comprehensive metrics are collected and monitored, including:
 - CPU and memory usage per browser instance.
@@ -40,7 +50,6 @@ Comprehensive metrics are collected and monitored, including:
 - **Web Automation**: Automate complex workflows like filling out forms, interacting with JavaScript-heavy pages, or navigating multi-step processes.
 - **Data Scraping**: Extract structured data from websites, even those protected by anti-bot mechanisms.
 - **End-to-End Testing**: Perform comprehensive tests on web applications in realistic environments with varying configurations.
-- **Headless Browsing**: Interact with websites programmatically without a visible browser UI.
 - **Load Testing**: Simulate real-world traffic with multiple browsers and user sessions.
 
 ---
@@ -68,6 +77,6 @@ WebPilot is licensed under the [MIT License](https://opensource.org/licenses/MIT
 ---
 
 ## **Acknowledgments**
-Special thanks to the open-source community and the creators of foundational libraries like FastAPI, Pyppeteer, which power WebPilot's core functionality.
+Special thanks to the open-source community and the creators of foundational libraries like FastAPI, Pyppeteer, and ther Chromium engine which together power WebPilot's core functionality.
 
 For any inquiries or support, feel free to reach out via the project repository. 🚀
