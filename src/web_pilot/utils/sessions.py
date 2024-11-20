@@ -4,7 +4,6 @@ import asyncio
 import nanoid
 
 from web_pilot.exc import InvalidSessionIDError
-from web_pilot.utils.snapshot_util import SnapshotUtil
 from web_pilot.schemas.pages import Snapshot, PageContent
 
 
