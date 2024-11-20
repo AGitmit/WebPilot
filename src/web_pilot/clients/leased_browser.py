@@ -3,7 +3,6 @@ import psutil
 import pydantic as pyd
 import pyppeteer.browser
 import pyppeteer.launcher
-import nanoid
 
 from typing import Optional
 from web_pilot.config import config as conf
