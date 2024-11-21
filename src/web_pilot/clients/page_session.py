@@ -15,8 +15,6 @@ from web_pilot.utils.sessions import (
     perform_action_goto,
     perform_action_goBack,
     perform_action_goForward,
-    perform_action_saveSnapshot,
-    perform_action_restoreSnapshot,
     perform_action_evaluate,
     perform_action_extractPageContents,
     perform_action_exposeFunction,
@@ -109,12 +107,6 @@ class PageSession:
 
             case PageActionType.GO_FORWARD:
                 call_method = perform_action_goForward
-
-            case PageActionType.SAVE_SNAPSHOT:
-                call_method = perform_action_saveSnapshot
-
-            case PageActionType.RESTORE_SNAPSHOT:
-                call_method = perform_action_restoreSnapshot
 
             case PageActionType.EVALUATE:
                 call_method = perform_action_evaluate

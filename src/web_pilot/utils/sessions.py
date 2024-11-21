@@ -82,16 +82,6 @@ async def perform_action_goForward(page: pyppeteer.page.Page, **kwargs) -> None:
     await page.goForward(options)
 
 
-async def perform_action_saveSnapshot(page: pyppeteer.page.Page) -> Snapshot:
-    # return await SnapshotUtil.capture_session_snapshot(page)
-    raise NotImplementedError("saveSnapshot is not implemented yet")
-
-
-async def perform_action_restoreSnapshot(page: pyppeteer.page.Page, snapshot: Snapshot) -> None:
-    # await SnapshotUtil.restore_session(page, snapshot)
-    raise NotImplementedError("restoreSnapshot is not implemented yet")
-
-
 async def perform_action_setViewport(page: pyppeteer.page.Page, **kwargs) -> None:
     width = kwargs.pop("width")
     height = kwargs.pop("height")

@@ -10,8 +10,6 @@ class PageActionType(Enum):
     GO_BACK = "goBack"
     GO_FORWARD = "goForward"
     EVALUATE = "evaluate"
-    SAVE_SNAPSHOT = "saveSnapshot"
-    RESTORE_SNAPSHOT = "restoreSnapshot"
     SET_GEOLOCATION = "setGeoLocation"
     CLEAR_GEOLOCATION = "clearGeoLocation"
     SET_VIEWPORT = "setViewport"
