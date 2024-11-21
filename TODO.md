@@ -6,6 +6,8 @@
 - **Rate Limiting - Redis**: implement Redis support.
 - **Page Session Cloning**: implement the ability to clone an existing session and return its session_id.
 - **Create Dockerfile**: create a ready-to-deploy dockerfile for most use cases.
+- **Page Session - Redis**: implement Redis storage of page session objects. (requires research)
+- **Page Object Decoupling: decoupling page object from the browser instance itself.(requires research)
 
 #### API Functionality Road-map
 ##### Session Control Endpoints:

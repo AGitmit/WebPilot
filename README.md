@@ -77,6 +77,6 @@ WebPilot is licensed under the [MIT License](https://opensource.org/licenses/MIT
 ---
 
 ## **Acknowledgments**
-Special thanks to the open-source community and the creators of foundational libraries like FastAPI, Pyppeteer, and ther Chromium engine which together power WebPilot's core functionality.
+Special thanks to the open-source community and the creators of foundational libraries like FastAPI, Pyppeteer, and the Chromium engine which together power WebPilot's core functionality.
 
 For any inquiries or support, feel free to reach out via the project repository. 🚀
