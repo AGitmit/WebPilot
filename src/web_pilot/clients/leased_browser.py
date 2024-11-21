@@ -167,21 +167,6 @@ class LeasedBrowser:
         )
         return session_id
 
-    async def clone_page_session(self, page_id: str) -> str:
-        "Clones an existing page and store it in cache by it's own session-ID"
-        # TODO: need some refactoring with the id's and also implement clone() method on page
-        page_session = self.get_page_session(page_id)
-        clone_page_id = generate_id()
-        new_page_session = PageSession(
-            page_obj=await page_session._page.clone(), page_id=clone_page_id
-        )
-        self.pages.set_item(clone_page_id, new_page_session)
-        session_id = f"{page_session.id_}_{str(clone_page_id)}"
-        logger.bind(browser_id=self.id_).info(
-            f"Created new page session: '{session_id}' successfully"
-        )
-        return session_id
-
     def pop_page_session(self, page_id: str) -> PageSession:
         "Retrieves a page-session from cache memory"
         page_session: PageSession = self.pages.pop_item(page_id)
