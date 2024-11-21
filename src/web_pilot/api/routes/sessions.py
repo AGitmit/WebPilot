@@ -104,19 +104,3 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
         except KeyError as e:
             logger.error(e)
             raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
-
-
-# Not implemented yet
-# @router.get("/clone/{session_id}", status_code=status.HTTP_201_CREATED)
-# async def clone_page_session(session_id: str):
-#     try:
-#         _, browser, page_session = PoolAdmin.get_session_parent_chain(session_id, peek=True)
-#         response = await page_session.get_page_metrics()
-#         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
-
-#     except PageSessionNotFoundError:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-#     except KeyError as e:
-#         logger.error(e)
-#         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=str(e))
