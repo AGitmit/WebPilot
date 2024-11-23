@@ -3,6 +3,7 @@ import psutil
 import pydantic as pyd
 import pyppeteer.browser
 import pyppeteer.launcher
+import asyncio
 
 from typing import Optional
 from web_pilot.config import config as conf
@@ -55,6 +56,7 @@ class LeasedBrowser:
         )
         self.platform = platform
         self.browser_type = browser
+        asyncio.ensure_future(self.pages.periodic_cleanup())
 
     def __repr__(self) -> dict:
         return dict(
@@ -189,7 +191,7 @@ class LeasedBrowser:
         "Closes and removes a cached page-session from memory - ending the session"
         page_session = self.pop_page_session(page_id)
         try:
-            await page_session._page.close()
+            await page_session.cleanup()
         except Exception as e:
             logger.bind(browser_id=self.id_, session_id=page_id).error(e)
             raise

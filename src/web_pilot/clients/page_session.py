@@ -1,5 +1,6 @@
 import pydantic as pyd
 import pyppeteer
+import asyncio
 
 from datetime import datetime, timedelta
 from typing import Any, Optional
@@ -7,6 +8,7 @@ from web_pilot.schemas.constants.page_action_type import PageActionType
 from web_pilot.logger import logger
 from web_pilot.utils.decorators import log_elapsed_time
 from web_pilot.exc import UnableToPerformActionError
+from web_pilot.config import config as conf
 from web_pilot.utils.sessions import (
     perform_action_click,
     perform_action_authenticate,
@@ -54,13 +56,24 @@ class PageSession:
             parent=self.id_.split("_")[0:2],
         )
 
+    def __del__(self):
+        # Schedule the cleanup asynchronously when the object is deleted (garbage collected)
+        asyncio.ensure_future(self.cleanup())
+
+    async def cleanup(self) -> None:
+        try:
+            await self._page.close()
+            logger.bind(page_id=self.id_).debug("Page is closed successfully")
+        except Exception as e:
+            logger.bind(page_id=self.id_).error(f"Error during page cleanup: {e}")
+
     def update_last_used(self) -> None:
         self._last_used = datetime.now()
 
     @property
     def is_idle(self) -> bool:
         "Get page's status - idle if it hasn't been used in the last 3 minutes"
-        if self._last_used < (datetime.now() - timedelta(seconds=180)):
+        if self._last_used < (datetime.now() - timedelta(seconds=conf.page_idle_timeout)):
             return True
         return False
 

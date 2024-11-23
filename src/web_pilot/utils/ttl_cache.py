@@ -1,9 +1,11 @@
 import pydantic as pyd
 import cachetools
+import asyncio
 
 from typing import Union
 from web_pilot.schemas.constants.cache import CacheProvider
 from web_pilot.config import config as conf
+from web_pilot.logger import logger
 
 
 class TTLCache:
@@ -31,3 +33,12 @@ class TTLCache:
 
     def delete_item(self, key: str) -> None:
         self._cache.__delitem__(key)
+
+    async def periodic_cleanup(self):
+        while True:
+            await asyncio.sleep(conf.cache_cleanup_interval)
+            try:
+                self._cache.expire()
+                logger.debug("Cache periodic-cleanup completed successfully")
+            except Exception as e:
+                logger.error(f"Error in exectuion of cache periodic-cleanup: {e}")
