@@ -34,12 +34,16 @@ class BaseConfig(BaseSettings):
     browser_max_cached_items: int = 100  # max pages cached in memory
     user_data_dir: str = "./user_data"
 
+    # Page Session config
+    page_idle_timeout: int = 180  # 3 minutes
+
     # Chromium
     chromium_path: str = Field(default_factory=executablePath)
 
     # caching
-    cache_ttl: float = 600  # 1 hour
+    cache_ttl: float = 300  # 5 minutes
     cache_provider: CacheProvider = CacheProvider.IN_MEMORY
+    cache_cleanup_interval: int = 60  # 1 minute
 
     class Config:
         case_sensitive = False
