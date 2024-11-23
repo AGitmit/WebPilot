@@ -98,7 +98,7 @@ class BrowserPool:
             return None
 
         elif len(self.browsers) == 1:
-            return self._pool.popitem()[1]
+            return list(self._pool.values())[0]
 
         least_busy_browser_idx = 0
         for idx, browser in enumerate(self.browsers):
