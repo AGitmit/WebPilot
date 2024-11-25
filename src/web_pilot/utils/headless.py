@@ -10,4 +10,4 @@ class HeadlessUtil:
             logger.info("Downloading Chromium...")
             pyppeteer.chromium_downloader.download_chromium()
             logger.info("Chromium downloaded successfully")
-        logger.debug("Chromium is up to date")
+        logger.debug("Chromium is ready")

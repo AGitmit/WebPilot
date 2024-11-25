@@ -1,5 +1,6 @@
 import uuid
 import pydantic as pyd
+import asyncio
 
 from typing import Optional
 from web_pilot.config import config as conf
@@ -54,7 +55,7 @@ class BrowserPool:
         self._accepts_new_jobs = False
 
     @run_if_pool_accepts_new_jobs
-    def create_new_browser(self) -> LeasedBrowser:
+    async def create_new_browser(self) -> LeasedBrowser:
         "Create and return a new browser instance"
         browser_id = generate_id()
         if len(self._pool) >= self._max_browsers:
@@ -87,18 +88,13 @@ class BrowserPool:
         return self._pool.get(browser_id)
 
     @run_if_pool_accepts_new_jobs
-    def get_least_busy_browser(self, create_if_none: bool) -> Optional[LeasedBrowser]:
+    async def get_least_busy_browser(self, create_if_none: bool) -> Optional[LeasedBrowser]:
         """
         Get the next available browser in the pool.
         If all browsers are full, raises an `NoAvailableBrowserError` exception.
         """
-        if len(self.browsers) == 0:
-            if create_if_none:
-                return self.create_new_browser()
-            return None
-
-        elif len(self.browsers) == 1:
-            return list(self._pool.values())[0]
+        if len(self.browsers) == 0 and create_if_none:
+            await self.create_new_browser()
 
         least_busy_browser_idx = 0
         for idx, browser in enumerate(self.browsers):
@@ -109,16 +105,18 @@ class BrowserPool:
             ):
                 least_busy_browser_idx = idx
 
-        if browser := self.browsers[least_busy_browser_idx].has_capacity:
+        browser = self.browsers[least_busy_browser_idx]
+        if browser.has_capacity:
             return browser
-
+        
         raise NoAvailableBrowserError(
             "All browsers are currently at full capacity! try again later."
         )
 
-    def auto_scale_up(self) -> Optional[LeasedBrowser]:
+    async def _auto_scale_up(self) -> Optional[LeasedBrowser]:
         "Scale up the pool by creating a new browser instance"
         # Check if the total number of pages across all browsers is greater than 50% of current capacity
+        logger.debug("Checking if scaling up is required...")
         total_page_cap = conf.browser_max_cached_items * len(self.browsers)
         total_active_pages = sum([browser.page_count for browser in self._pool.values()])
         avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
@@ -126,17 +124,18 @@ class BrowserPool:
         )
         if total_active_pages >= (total_page_cap * 0.6) or avg_cpu_usage >= 0.7:
             try:
-                self.create_new_browser()
+                await self.create_new_browser()
                 logger.bind(pool_id=self.id_, action="scale_up").info(
-                    f"Scaled up to {len(self.browsers)} browsers!"
+                    f"Successfully scaled up to {len(self.browsers)} browsers!"
                 )
 
             except BrowserPoolCapacityReachedError as e:
                 logger.bind(pool_id=self.id_, action="scale_up").warning(f"Scaling up failed: {e}")
 
-    async def auto_scale_down(self) -> None:
+    async def _auto_scale_down(self) -> None:
         "Scale down the pool by removing the least busy browser instance"
         # Check if the total number of pages across all browsers is less than 25% of current capacity
+        logger.debug("Checking if scaling down is required...")
         total_page_cap = conf.browser_max_cached_items * len(self.browsers)
         total_active_pages = sum([browser.page_count for browser in self._pool.values()])
         avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
@@ -144,13 +143,12 @@ class BrowserPool:
         )
         if total_active_pages <= (total_page_cap * 0.3) or avg_cpu_usage <= 0.3:
             candidates_for_deletion = [
-                browser for browser in self.browsers if browser.page_count == 0 or browser.is_idle
+                browser for browser in self.browsers if browser.is_idle
             ]
-            if len(candidates_for_deletion) > 0:
-                [
-                    await self.remove_browser_by_id(candidate.id_)
-                    for candidate in candidates_for_deletion
-                ]
-                logger.bind(pool_id=self.id_, action="scale_down").info(
-                    f"Scaled down to {len(self.browsers)} browsers!"
-                )
+            await asyncio.gather(
+                *[self.remove_browser_by_id(candidate.id_) for candidate in candidates_for_deletion]
+            )
+
+            logger.bind(pool_id=self.id_, action="scale_down").info(
+                f"Successfully scaled down to {len(self.browsers)} browsers!"
+            )

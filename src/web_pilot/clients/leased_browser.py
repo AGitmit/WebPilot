@@ -56,7 +56,7 @@ class LeasedBrowser:
         )
         self.platform = platform
         self.browser_type = browser
-        asyncio.ensure_future(self.pages.periodic_cleanup())
+        # asyncio.ensure_future(self.pages.periodic_cleanup()) # TODO: consider altered implementation and remove this
 
     def __repr__(self) -> dict:
         return dict(
@@ -127,6 +127,8 @@ class LeasedBrowser:
 
     @property
     def pid(self) -> int:
+        if not self._browser:
+            return None
         process = self._browser.process
         return process.pid
 
@@ -134,15 +136,19 @@ class LeasedBrowser:
     def monitor_browser(self) -> tuple[float, float]:
         """Monitor the resource usage of a browser process."""
         try:
-            process = psutil.Process(self.pid)
-            cpu_usage = (
-                process.cpu_percent(interval=0.1) / psutil.cpu_count()
-            )  # CPU usage of the process
-            memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory in MB
-            return cpu_usage, memory_usage
+            process_id = self.pid
+            if process_id:
+                process = psutil.Process(process_id)
+                cpu_usage = (
+                    process.cpu_percent(interval=0.1) / psutil.cpu_count()
+                )  # CPU usage of the process
+                memory_usage = process.memory_info().rss / (1024 * 1024)  # Memory in MB
+                return cpu_usage, memory_usage
 
         except psutil.NoSuchProcess:
-            return 0, 0
+            pass
+
+        return 0, 0
 
     @property
     def is_idle(self) -> bool:

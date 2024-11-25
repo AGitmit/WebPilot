@@ -100,12 +100,12 @@ async def delete_unused_pools():
     PoolAdmin.remove_deletion_candidates()
 
 
-@repeat_every(interval=conf.pools_scaling_check_interval)
-async def manage_pools_scaling():
-    await PoolAdmin.manage_pools_scaling()
+# @repeat_every(interval=conf.pools_scaling_check_interval)
+# async def manage_pools_scaling():
+#     await PoolAdmin.manage_pools_scaling()
 
 
 @app.on_event("startup")
 async def register_background_tasks():
     asyncio.create_task(delete_unused_pools())
-    asyncio.create_task(manage_pools_scaling())
+    # asyncio.create_task(manage_pools_scaling())

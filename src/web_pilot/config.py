@@ -27,12 +27,14 @@ class BaseConfig(BaseSettings):
     # pool admin config
     max_pools: int = 10
     idle_pool_deletion_interval: int = 30
-    pools_scaling_check_interval: int = 60
 
     # browser pool config
-    browser_pool_max_size: int = 1
+    browser_pool_max_size: int = 3
     browser_max_cached_items: int = 100  # max pages cached in memory
     user_data_dir: str = "./user_data"
+    pools_scaling_check_interval: int = (
+        60  # TODO: move scaling check on incoming requests to the browser pool.
+    )
 
     # Page Session config
     page_idle_timeout: int = 180  # 3 minutes

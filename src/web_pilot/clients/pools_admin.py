@@ -64,7 +64,7 @@ class PoolAdmin:
     @classmethod
     @pyd.validate_arguments
     def remove_deletion_candidates(cls) -> None:
-        logger.debug("Removing pools marked for deletion...")
+        logger.debug("Removing BrowserPools marked for deletion...")
         for p_idx, pool_id in enumerate(cls._deletion_candidates):
             if pool_id not in cls._pools or not cls._pools[pool_id].is_idle:
                 logger.bind(pool_id=pool_id).info(
@@ -87,10 +87,11 @@ class PoolAdmin:
         cls._pools[pool_id] = BrowserPool(pool_id, config)
         return pool_id
 
-    @classmethod
-    async def manage_pools_scaling(cls) -> None:
-        "Scale-up and scale-down pools"
-        logger.debug("Checking Scaling conditions for pools...")
-        for _, pool in cls._pools.items():
-            pool.auto_scale_up()
-            await pool.auto_scale_down()
+    # @classmethod
+    # async def manage_pools_scaling(cls) -> None:
+    #     # TODO: delete this after altering the scaling check
+    #     "Scale-up and scale-down pools"
+    #     logger.debug("Checking Scaling conditions for pools...")
+    #     for _, pool in cls._pools.items():
+    #         pool.auto_scale_up()
+    #         await pool.auto_scale_down()
