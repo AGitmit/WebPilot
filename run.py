@@ -9,7 +9,7 @@ if __name__ == "__main__":
         host=conf.host_address,
         port=conf.host_port,
         access_log=True,
-        reload=conf.reload_app,
         workers=conf.workers_count,
+        limit_concurrency=conf.limit_concurrency,
         loop="uvloop",
     )
