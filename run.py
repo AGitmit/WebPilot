@@ -11,5 +11,6 @@ if __name__ == "__main__":
         access_log=True,
         workers=conf.workers_count,
         limit_concurrency=conf.limit_concurrency,
+        limit_max_requests=conf.limit_max_requests,
         loop="uvloop",
     )
