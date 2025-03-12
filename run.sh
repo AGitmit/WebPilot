@@ -65,4 +65,4 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "Starting project..."
-exec poetry run python -m run
+exec poetry run python -m main
