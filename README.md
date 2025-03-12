@@ -55,8 +55,8 @@ Comprehensive metrics are collected and monitored, including:
 ---
 
 ## **System Requirements**
-- **Python Version**: 3.12 or higher.
-- **Dependencies**: Managed using [Poetry](https://python-poetry.org/) for streamlined package management and virtual environment handling.
+- **Python Version**: >=3.12.
+- **Dependencies**: Either use `pip` to install the project or using [Poetry](https://python-poetry.org/) for streamlined package management and virtual environment handling; WebPilot support both methods.
 - **OS**: Linux-based systems are recommended for optimal compatibility with headless Chromium.
 
 ---

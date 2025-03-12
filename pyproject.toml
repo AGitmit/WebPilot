@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "🌐🕹️ WebPilot"
+name = "WebPilot"
 version = "0.1.0"
 description = "Controlling the web - redefined"
 authors = ["Amit Nakash"]
