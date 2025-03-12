@@ -16,6 +16,7 @@ class BaseConfig(BaseSettings):
     rate_period: int = 60  # Time period in seconds
     limit_concurrency: int = 100
     limit_max_requests: int = 5000
+    access_log: bool = True if limit_concurrency < 200 else False
     # server config
     host_address: str = "0.0.0.0"
     host_port: int = 8000
