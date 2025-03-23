@@ -120,10 +120,7 @@ class LeasedBrowser:
 
         except Exception as e:
             logger.bind(browser_id=self.id_).error(f"Failed to launch browser: {e}", exc_info=True)
-            if isinstance(e, pyppeteer.errors.PuppeteerError):
-                raise FailedToLaunchBrowser(e)
-
-            raise e
+            raise FailedToLaunchBrowser(e)
 
     @property
     def page_count(self) -> int:
