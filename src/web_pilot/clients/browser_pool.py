@@ -124,11 +124,13 @@ class BrowserPool:
         avg_cpu_usage = sum(browser.monitor_browser[0] for browser in self.browsers) / len(
             self.browsers
         )
-        if total_active_pages >= (total_page_cap * 0.6) or avg_cpu_usage >= 0.7:
+        if total_active_pages > 0 and (
+            total_active_pages >= (total_page_cap * 0.6) or avg_cpu_usage >= 0.7
+        ):
             try:
                 self.create_new_browser()
                 logger.bind(pool_id=self.id_, action="scale_up").info(
-                    f"Scaled up to {len(self.browsers)} browsers!"
+                    f"Scaled up to {len(self.browsers)} browsers"
                 )
 
             except BrowserPoolCapacityReachedError as e:
@@ -152,5 +154,5 @@ class BrowserPool:
                     for candidate in candidates_for_deletion
                 ]
                 logger.bind(pool_id=self.id_, action="scale_down").info(
-                    f"Scaled down to {len(self.browsers)} browsers!"
+                    f"Scaled down to {len(self.browsers)} browsers"
                 )
