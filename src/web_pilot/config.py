@@ -1,7 +1,8 @@
 import os
 
 from pyppeteer import executablePath
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 from typing import Literal, Union
 from web_pilot.schemas.constants.cache import CacheProvider
 
