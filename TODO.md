@@ -1,7 +1,6 @@
 ### 🌐🕹️ WebPilot - TODO
 #### Feature/Functional Tasks
 - **Testing**: write tests.
-- **Create Dockerfile**: create a ready-to-deploy dockerfile for most use cases.
 
 #### API Functionality Road-map
 ##### Session Persistence and Management:
