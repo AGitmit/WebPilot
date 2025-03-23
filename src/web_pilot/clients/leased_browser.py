@@ -117,9 +117,12 @@ class LeasedBrowser:
         try:
             self._browser = await pyppeteer.launch(**self.config)
 
-        except pyppeteer.errors.PuppeteerError as e:
+        except Exception as e:
             logger.bind(browser_id=self.id_).error(f"Failed to launch browser: {e}", exc_info=True)
-            raise FailedToLaunchBrowser(e)
+            if isinstance(e, pyppeteer.errors.PuppeteerError):
+                raise FailedToLaunchBrowser(e)
+
+            raise e
 
     @property
     def page_count(self) -> int:
