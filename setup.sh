@@ -32,8 +32,6 @@ fi
 
 echo "Using Python binary: $PYTHON_BIN"
 $PYTHON_BIN --version
-# USE_PYTHON=$($PYTHON_BIN --version | awk '{print $2}')
-# echo $USE_PYTHON
 
 echo "🔎 Checking for virtual environment..."
 if [ ! -d "$VENV_DIR" ]; then
