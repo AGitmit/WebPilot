@@ -15,24 +15,26 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir .
 # Install Chromium dependencies
 RUN apt-get update && apt-get install -y \
-    libx11-6 \
-    libx11-xcb-dev \
-    libxcb-dri3-0 \
-    libxcb-present0 \
-    libxcb-sync1 \
-    libxcb-xfixes0 \
-    libxcb1 \
+    libnss3 \
+    libatk1.0-0 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
     libxdamage1 \
-    libxext6 \
     libxfixes3 \
-    libxi6 \
     libxrandr2 \
-    libxrender1 \
-    libxshmfence1 \
-    libxtst6
+    libgbm1 \
+    libpango-1.0-0 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libx11-6 \
+    libgtk-3-0 \
+    libxext6 \
+    libnss3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Download and install Chromium
-RUN apt-get update && apt-get install -y chromium
+RUN apt-get update && apt-get install -y chromium chromium-driver
 
 # Set environment variables
 ENV ENVIRONMENT=localhost
