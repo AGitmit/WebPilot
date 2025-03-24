@@ -22,7 +22,7 @@ elif command -v pyenv >/dev/null 2>&1; then
     PYTHON_BIN="$(pyenv which python3)"
 else
     echo "❌ Python $PYTHON_VERSION is not installed, and pyenv is missing."
-    echo "Please install Python $PYTHON_VERSION manually or install pyenv:"
+    echo "☝️ Please install Python $PYTHON_VERSION manually or install pyenv:"
     echo "🔹 MacOS (Homebrew): brew install pyenv"
     echo "🔹 Ubuntu: sudo apt install -y python3.12"
     echo "🔹 Arch Linux: sudo pacman -S python3.12"
@@ -50,14 +50,14 @@ else
     pip show poetry || pip install poetry
     CURRENT_VENV_PYTHON=$(python --version | awk '{print $2}')
     if [[ "$CURRENT_VENV_PYTHON" != "$PYTHON_VERSION"* ]]; then
-        echo "Incorrect Python version in virtual environment. Recreating..."
+        echo "👎 Incorrect Python version in virtual environment. 🔨 Recreating..."
         rm -rf $VENV_DIR
         python3.12 -m venv $VENV_DIR
         source $VENV_DIR/bin/activate
         pip install --upgrade pip
         pip install poetry
         poetry install
-        echo "Virtual environment setup complete."
+        echo "👌 Virtual environment setup complete."
     fi
 fi
 
@@ -65,10 +65,10 @@ echo "🔎 Checking for .env file..."
 if [ ! -f ".env" ]; then
     if [ -f ".env.default" ]; then
         cp .env.default .env
-        echo ".env file created from .env.default - modify as needed."
+        echo "👌 .env file created from .env.default - modify as needed."
     else
         touch .env
-        echo ".env file created - please configure it."
+        echo "👌 .env file created - please configure it."
     fi
 fi
 
