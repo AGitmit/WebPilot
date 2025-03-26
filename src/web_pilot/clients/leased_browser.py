@@ -87,6 +87,7 @@ class LeasedBrowser:
             "args": [
                 f"--host-resolver-rules=MAP localhost {conf.host_address}",
                 "--no-sandbox",
+                "--disable-setuid-sandbox",
                 "--disable-dev-shm-usage",
             ],
         }
@@ -117,7 +118,7 @@ class LeasedBrowser:
         try:
             self._browser = await pyppeteer.launch(**self.config)
 
-        except pyppeteer.errors.PuppeteerError as e:
+        except Exception as e:
             logger.bind(browser_id=self.id_).error(f"Failed to launch browser: {e}", exc_info=True)
             raise FailedToLaunchBrowser(e)
 
@@ -160,14 +161,21 @@ class LeasedBrowser:
         if not self._browser:
             await self._instantiate_browser()
 
-        page_id = generate_id()
-        new_page_session = PageSession(page_obj=await self._browser.newPage(), page_id=page_id)
-        self.pages.set_item(page_id, new_page_session)
-        session_id = f"{session_id_prefix}_{str(page_id)}"
-        logger.bind(browser_id=self.id_).info(
-            f"Created new page session: '{session_id}' successfully"
-        )
-        return session_id
+        try:
+            page_id = generate_id()
+            new_page_session = PageSession(page_obj=await self._browser.newPage(), page_id=page_id)
+            self.pages.set_item(page_id, new_page_session)
+            session_id = f"{session_id_prefix}_{str(page_id)}"
+            logger.bind(browser_id=self.id_).info(
+                f"Created new page session: '{session_id}' successfully"
+            )
+            return session_id
+
+        except Exception as e:
+            logger.bind(browser_id=self.id_).error(
+                f"Failed to create new page session: {e}", exc_info=True
+            )
+            raise e
 
     def pop_page_session(self, page_id: str) -> PageSession:
         "Retrieves a page-session from cache memory"
