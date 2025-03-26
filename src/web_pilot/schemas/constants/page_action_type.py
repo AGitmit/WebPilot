@@ -30,3 +30,4 @@ class PageActionType(Enum):
     GET_PAGE_METRICS = "getPageMetrics"
     GET_ACCESSIBILITY_TREE = "getAccessibilityTree"
     SET_CONTENT = "setContent"
+    SET_EXTRA_HTTP_HEADERS = "setExtraHttpHeaders"
