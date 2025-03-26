@@ -80,11 +80,8 @@ class PoolAdmin:
     def create_new_pool(cls, config: dict = {}) -> uuid.UUID:
         "Create new pool instance, return it's ID for reference"
         pool_id = sha1(str(config).encode()).hexdigest()
-        if pool_id in cls._pools:
-            raise PoolAlreadyExistsError(
-                f"A pool with these configuration already exists - pool_id:'{pool_id}'"
-            )
-        cls._pools[pool_id] = BrowserPool(pool_id, config)
+        if pool_id not in cls._pools:
+            cls._pools[pool_id] = BrowserPool(pool_id, config)
         return pool_id
 
     @classmethod
