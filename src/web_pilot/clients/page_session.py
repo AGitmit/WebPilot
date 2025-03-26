@@ -35,6 +35,7 @@ from web_pilot.utils.sessions import (
     perform_action_setContent,
     perform_action_startJSCoverage,
     perform_action_stopJSCoverage,
+    perform_action_setExtraHttpHeaders,
 )
 
 
@@ -99,6 +100,8 @@ class PageSession:
     @pyd.validate_arguments
     @log_elapsed_time
     async def perform_page_action(self, action: PageActionType, **kwargs) -> Any:
+        return_page_contents = kwargs.get("returnPageContents", False)
+
         match action:
             case PageActionType.CLICK:
                 call_method = perform_action_click
@@ -157,7 +160,7 @@ class PageSession:
             case PageActionType.SET_COOKIE:
                 call_method = perform_action_setCookie
 
-            case PageActionType.REMOVE_COOKIE:
+            case PageActionType.DELETE_COOKIE:
                 call_method = perform_action_deleteCookie
 
             case PageActionType.EMULATE_MEDIA:
@@ -178,11 +181,17 @@ class PageSession:
             case PageActionType.SET_CONTENT:
                 call_method = perform_action_setContent
 
+            case PageActionType.SET_EXTRA_HTTP_HEADERS:
+                call_method = perform_action_setExtraHttpHeaders
+
             case _:
                 raise NotImplementedError(f"Action '{action}' is not supported!")
 
         try:
-            return await call_method(self._page, **kwargs)
+            res = await call_method(self._page, **kwargs)
+            if return_page_contents and action != PageActionType.EXTRACT_PAGE_CONTENTS:
+                return await perform_action_extractPageContents(self._page)
+            return res
 
         except Exception as e:
             logger.bind(session_id=str(self.id_), page_action=action).error(

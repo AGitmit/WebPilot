@@ -2,6 +2,8 @@ import pydantic as pyd
 import pyppeteer
 import asyncio
 import nanoid
+import pyppeteer.page
+import json
 
 from web_pilot.exc import InvalidSessionIDError
 from web_pilot.schemas.pages import Snapshot, PageContent
@@ -47,6 +49,12 @@ async def perform_action_setUserAgent(page: pyppeteer.page.Page, **kwargs) -> No
 async def perform_action_screenshot(page: pyppeteer.page.Page, **kwargs) -> None:
     options = kwargs.pop("options", None)
     await page.screenshot(options)
+
+
+async def perform_action_setExtraHttpHeaders(page: pyppeteer.page.Page, **kwargs) -> None:
+    headers = kwargs.pop("headers")
+    headers = json.loads(headers)
+    await page.setExtraHTTPHeaders(headers)
 
 
 async def perform_action_goto(page: pyppeteer.page.Page, **kwargs) -> None:
