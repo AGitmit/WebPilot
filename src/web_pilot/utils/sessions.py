@@ -5,6 +5,7 @@ import nanoid
 import pyppeteer.page
 import json
 
+from typing import Any
 from web_pilot.exc import InvalidSessionIDError
 from web_pilot.schemas.pages import Snapshot, PageContent
 
@@ -26,7 +27,8 @@ def generate_id(len_=6) -> str:
 
 # Page actions
 async def perform_action_click(page: pyppeteer.page.Page, **kwargs) -> None:
-    if selector := kwargs.pop("selector", None) is None:
+    selector = kwargs.pop("selector", None)
+    if not selector:
         raise ValueError(f"Selector is required for 'click' action")
 
     wait_for_selector = kwargs.pop("waitForSelector", True)
@@ -75,9 +77,10 @@ async def perform_action_goto(page: pyppeteer.page.Page, **kwargs) -> None:
         raise ValueError("URL is required for 'goto' action")
 
     options = kwargs.pop("options", None)
-    await page.goto(url, options)
-    if kwargs.get("waitForText"):
-        await _wait_for_text(page, kwargs.get("waitForText"))
+    wait_for_text = kwargs.pop("waitForText", None)
+    await page.goto(url, options, **kwargs)
+    if wait_for_text:
+        await _wait_for_text(page, wait_for_text)
 
 
 async def perform_action_goBack(page: pyppeteer.page.Page, **kwargs) -> None:
@@ -110,10 +113,25 @@ async def perform_action_deleteCookie(page: pyppeteer.page.Page, **kwargs) -> No
         await page.deleteCookie(*cookies)
 
 
-async def perform_action_evaluate(page: pyppeteer.page.Page, **kwargs) -> None:
+async def perform_action_evaluate(page: pyppeteer.page.Page, **kwargs) -> Any:
     code = kwargs.pop("code")
     args = kwargs.pop("args", [])
-    return await page.evaluate(code, *args)
+    wait_for_navigation = kwargs.pop("waitForNavigation", False)
+    return_result = kwargs.pop("returnResult", False)
+    # Ensure the page is fully loaded before evaluating
+    await page.waitForSelector("body")
+    await page.waitForFunction("document.readyState === 'complete'")
+
+    if wait_for_navigation:
+        evaluation_result, _ = await asyncio.gather(
+            page.evaluate(code, *args),
+            page.waitForNavigation(),
+        )
+    else:
+        evaluation_result = await page.evaluate(code, *args)
+
+    if return_result:
+        return evaluation_result
 
 
 async def perform_action_evaluateOnNewDocument(page: pyppeteer.page.Page, **kwargs) -> None:
