@@ -117,20 +117,25 @@ async def perform_action_evaluate(page: pyppeteer.page.Page, **kwargs) -> Any:
     code = kwargs.pop("code")
     args = kwargs.pop("args", [])
     wait_for_navigation = kwargs.pop("waitForNavigation", False)
-    return_result = kwargs.pop("returnResult", False)
     # Ensure the page is fully loaded before evaluating
     await page.waitForSelector("body")
     await page.waitForFunction("document.readyState === 'complete'")
 
-    if wait_for_navigation:
-        evaluation_result, _ = await asyncio.gather(
-            page.evaluate(code, *args),
-            page.waitForNavigation(),
-        )
-    else:
-        evaluation_result = await page.evaluate(code, *args)
+    try:
+        if wait_for_navigation:
+            evaluation_result, _ = await asyncio.gather(
+                page.evaluate(code, *args),
+                page.waitForNavigation(),
+            )
+        else:
+            evaluation_result = await page.evaluate(code, *args)
 
-    if return_result:
+    except Exception as e:
+        evaluation_result = {
+            "error": f"Error in exectuion of evaluate function: {e}",
+            }
+        
+    finally:
         return evaluation_result
 
 

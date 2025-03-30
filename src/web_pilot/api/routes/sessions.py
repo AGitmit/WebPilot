@@ -94,6 +94,8 @@ async def perform_action_on_page(session_id: str, args: PageActionRequest):
             _, browser, page = PoolAdmin.get_session_parent_chain(session_id)
             response = await page.perform_page_action(**args.dict())
             browser.put_page_session(page.id_, page)
+            if isinstance(response, dict) and "error" in response:
+                return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content=response)
             return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
         try:

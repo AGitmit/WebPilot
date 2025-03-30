@@ -100,7 +100,7 @@ class PageSession:
     @pyd.validate_arguments
     @log_elapsed_time
     async def perform_page_action(self, action: PageActionType, **kwargs) -> Any:
-        return_page_contents = kwargs.get("returnPageContents", False)
+        return_page_contents = kwargs.pop("returnPageContents", False)
 
         match action:
             case PageActionType.CLICK:
